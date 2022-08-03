@@ -1,8 +1,10 @@
-import { PuppetLark } from './puppet-lark'
-import { VERSION }    from './version'
+import { PuppetDaen } from './puppet-daen.js'
+export {
+  VERSION,
+  log,
+}              from './config.js'
 
 export {
-  PuppetLark,
-  VERSION,
+  PuppetDaen,
 }
-export default PuppetLark
+export default PuppetDaen

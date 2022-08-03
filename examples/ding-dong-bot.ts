@@ -4,7 +4,7 @@ import {
   FileBox,
 }                           from 'wechaty-puppet'
 
-import { PuppetLark } from '../src/puppet-lark'
+import { PuppetLark } from '../src/puppet-daen'
 
 const puppet = new PuppetLark({
   larkServer: {
