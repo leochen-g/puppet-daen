@@ -1,7 +1,7 @@
 {
-  "name": "wechaty-puppet-daen",
+  "name": "wechaty-puppet-engine",
   "version": "1.0.1",
-  "description": "Puppet Daen for Wechaty",
+  "description": "Puppet engine for Wechaty",
   "type": "module",
   "typings": "./dist/esm/src/mod.d.ts",
   "exports": {
@@ -31,6 +31,7 @@
     "start": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" node examples/ding-dong-bot.ts",
     "test": "npm-run-all lint test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
+    "lint:fix": "eslint --fix \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
     "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" TAP_TIMEOUT=60 tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\""
   },
   "repository": {
@@ -61,16 +62,26 @@
     "@chatie/tsconfig": "^4.6.3",
     "@types/body-parser": "^1.19.0",
     "@types/express": "^4.17.11",
+    "@types/fs-extra": "^9.0.13",
+    "@types/lru-cache": "^5.1.1",
+    "@types/xml2js": "^0.4.11",
     "pkg-jq": "^0.2.11",
     "ts-node": "^10.9.1",
     "wechaty": "^1.20.2",
     "wechaty-puppet": "^1.20.2"
   },
   "dependencies": {
+    "@types/node-cleanup": "^2.1.2",
     "axios": "^0.21.1",
     "body-parser": "^1.19.0",
+    "cuid": "^2.1.8",
     "express": "^4.17.1",
-    "express-xml-bodyparser": "^0.3.0"
+    "express-xml-bodyparser": "^0.3.0",
+    "file-box": "^1.4.15",
+    "fs-extra": "^10.1.0",
+    "lru-cache": "^6.0.0",
+    "node-cleanup": "^2.1.2",
+    "xml2js": "^0.4.23"
   },
   "publishConfig": {
     "access": "public",

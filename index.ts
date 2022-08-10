@@ -1,8 +1,10 @@
 import { WechatyBuilder } from 'wechaty'
-import { PuppetDaen } from './src/mod.js'
+import { PuppetEngine } from './src/mod.js'
 const bot = WechatyBuilder.build({
   name: 'wechat-dice-bot', // generate xxxx.memory-card.json and save login data for the next login
-  puppet: new PuppetDaen(),
+  puppet: new PuppetEngine({
+    httpServer: 'http://10.10.10.15:8055/DaenWxHook/client/'
+  }),
 });
 // bot
 //   .use(WechatyWebPanelPlugin({apiKey: 'e05752bb8ec1038e221a63bd35165cdec8177d3a',

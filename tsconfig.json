@@ -2,6 +2,7 @@
   "extends": "@chatie/tsconfig",
   "compilerOptions": {
     "outDir": "dist/esm",
+    "allowSyntheticDefaultImports": true,
     "lib": [
       "dom",
       "esnext",

@@ -1,10 +1,10 @@
-import { PuppetDaen } from './puppet-daen.js'
+import { PuppetEngine } from './puppet-engine.js'
 export {
   VERSION,
   log,
 }              from './config.js'
 
 export {
-  PuppetDaen,
+  PuppetEngine,
 }
-export default PuppetDaen
+export default PuppetEngine

@@ -1,7 +1,7 @@
 node_modules/
 examples/test.ts
 examples/test_v.mp4
-
+.idea
 package-lock.json
 t.*
 t/
