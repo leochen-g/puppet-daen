@@ -11,8 +11,8 @@
     }
   },
   "engines": {
-    "wechaty": ">=0.50",
-    "wechaty-puppet": ">=0.33.5"
+    "wechaty": ">=1.20",
+    "wechaty-puppet": ">=1.20"
   },
   "scripts": {
     "start:test": "node --loader ts-node/esm index.ts",
@@ -46,15 +46,15 @@
     "wechat",
     "sdk"
   ],
-  "author": "Fan RUI <https://github.com/Roxanne718>",
+  "author": "Leo_chen <https://github.com/leochen-g>",
   "maintainers": [
     "Huan <zixia@zixia.net>"
   ],
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/wechaty/wechaty-puppet-lark/issues"
+    "url": "https://github.com/wechaty/wechaty-puppet-engine/issues"
   },
-  "homepage": "https://github.com/wechaty/wechaty-puppet-lark#readme",
+  "homepage": "https://github.com/wechaty/wechaty-puppet-engine#readme",
   "devDependencies": {
     "@chatie/eslint-config": "^1.0.4",
     "@chatie/git-scripts": "^0.6.2",

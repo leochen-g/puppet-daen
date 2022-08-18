@@ -6,7 +6,7 @@ import type { MessageParser, MessageParserContext } from './message-parser.js'
 async function roomMessageSentByOthers (engineMessage: MessagePayload, ret: PUPPET.payloads.Message) {
   if (isRoomId(engineMessage.fromWxid) || isIMRoomId(engineMessage.fromWxid)) {
     ret.roomId = engineMessage.fromWxid
-    ret.talkerId = engineMessage.finalFromWxid
+    ret.talkerId = engineMessage.finalFromWxid || engineMessage.fromWxid
     ret.text = engineMessage.msg
     /**
      * separator of talkerId and content:
@@ -22,7 +22,7 @@ async function roomMessageSentBySelf (engineMessage: MessagePayload, ret: PUPPET
   if (isRoomId(engineMessage.fromWxid) || isIMRoomId(engineMessage.fromWxid)) {
     // room message sent by self
     ret.roomId = engineMessage.fromWxid
-    ret.talkerId = engineMessage.finalFromWxid
+    ret.talkerId = engineMessage.finalFromWxid || engineMessage.fromWxid
     ret.text = engineMessage.msg
   }
 }
@@ -47,7 +47,7 @@ export const roomParser: MessageParser = async (engineMessage: MessagePayload, r
     if (typeof engineMessage.atWxidList === 'object') {
       engineMessage.atWxidList = []
     }
-    if (engineMessage.atWxidList && engineMessage.atWxidList.length === 1 && engineMessage.atWxidList[0] === 'announcement@all' || engineMessage.msg.includes('@所有人 ')) {
+    if ((engineMessage.atWxidList && engineMessage.atWxidList.length === 1 && engineMessage.atWxidList[0] === 'announcement@all') || engineMessage.msg.includes('@所有人 ')) {
       const roomPayload = await context.puppet.roomPayload(ret.roomId)
       mentionIdList = roomPayload.memberIdList
     } else {

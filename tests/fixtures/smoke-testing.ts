@@ -2,7 +2,7 @@
 import {
   VERSION,
   PuppetLark,
-}                       from 'wechaty-puppet-lark'
+}                       from 'wechaty-puppet-engine'
 
 import assert from 'assert'
 

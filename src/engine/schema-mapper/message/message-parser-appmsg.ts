@@ -4,6 +4,7 @@ import type { MessagePayload  } from '../../../engine-schema.js'
 import { log } from 'wechaty-puppet'
 import { LOGPRE, MessageParser, MessageParserContext } from './message-parser.js'
 import { AppMessageType, parseAppmsgMessagePayload } from '../../messages/message-appmsg.js'
+import { getFileName } from '../../utils/index.js'
 
 export const appMsgParser: MessageParser = async (engineMessage: MessagePayload, ret: PUPPET.payloads.Message, context: MessageParserContext) => {
   if (ret.type !== PUPPET.types.Message.Attachment) {
@@ -11,6 +12,19 @@ export const appMsgParser: MessageParser = async (engineMessage: MessagePayload,
   }
 
   try {
+    if (engineMessage.msg.includes('[file=')) {
+      const reg = /\[file=(.+)]/
+      const res = engineMessage.msg && reg.exec(engineMessage.msg)
+      const path = res?.[1]
+      if (path) {
+        ret.type = PUPPET.types.Message.Attachment
+        ret.filename = getFileName(path)
+        return ret
+      }
+      ret.type = PUPPET.types.Message.Attachment
+      ret.filename = ''
+      return ret
+    }
     const appPayload = await parseAppmsgMessagePayload(engineMessage.msg)
     context.appMessagePayload = appPayload
 

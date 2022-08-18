@@ -21,6 +21,7 @@ const TypeMappings: { [key: number]: PUPPET.types.Message; } = {
   [WechatMessageType.StatusNotify]: PUPPET.types.Message.Unknown,
   [WechatMessageType.SysNotice]: PUPPET.types.Message.Unknown,
   [WechatMessageType.RedEnvelope]: PUPPET.types.Message.RedEnvelope,
+  [WechatMessageType.Transfer]: PUPPET.types.Message.Transfer,
 }
 
 export const typeParser: MessageParser = async (engineMessage: MessagePayload, ret: PUPPET.payloads.Message, _context: MessageParserContext) => {

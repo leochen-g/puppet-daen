@@ -5,11 +5,11 @@ import type { ContactPayload } from '../../engine-schema.js'
 export function engineContactToWechaty (contact: ContactPayload): PUPPET.payloads.Contact {
   return {
     alias: contact.remark, // 备注
-    avatar: contact.avatarUrl, // 头像
+    avatar: contact.avatar, // 头像
     city: contact.city, // 城市
     gender: contact.sex, // 性别
     id: contact.wxid, // wxid
-    name: contact.nick, // 昵称
+    name: contact.name, // 昵称
     phone: [],
     province: contact.province,
     signature: contact.sign, // 签名

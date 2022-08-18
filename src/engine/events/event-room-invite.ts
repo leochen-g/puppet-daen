@@ -17,8 +17,6 @@ export default async (_puppet: PUPPET.Puppet, message: MessagePayload): Promise<
     return null
   }
 
-  console.log('收到邀请链接', appMsgPayload)
-
   if (appMsgPayload.type !== AppMessageType.Url) {
     return null
   }
@@ -44,7 +42,6 @@ export default async (_puppet: PUPPET.Puppet, message: MessagePayload): Promise<
   if (!matches) {
     return null
   }
-
   let receiverId = ''
   // 如果不是群，则接收人是机器人 是群的话，接收人为群
   if (!isRoomId(message.fromWxid)) {

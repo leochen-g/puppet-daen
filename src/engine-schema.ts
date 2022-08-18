@@ -19,7 +19,7 @@
 import type * as PUPPET from 'wechaty-puppet'
 import type { WechatMessageType } from './engine/types.js'
 // 来源类型：1|私聊 2|群聊 3|公众号
-enum FromType {
+export enum FromType {
   CONTACT = 1,
   ROOM    = 2,
   OFFICE  = 3,
@@ -40,9 +40,9 @@ export enum MsgSource {
 export interface MessagePayload {
   id: string,
   timeStamp: number,
-  fromType: FromType,
+  fromType?: FromType,
   msgType?: WechatMessageType,
-  msgSource: MsgSource,
+  msgSource?: MsgSource,
   fromWxid: string, // fromType=1时为好友wxid，fromType=2时为群wxid，fromType=3时公众号wxid
   finalFromWxid: string, // 仅fromType=2时有效，为群内发言人wxid
   atWxidList?: string[], // 仅fromType=2，且msgSource=0时有效，为消息中艾特人wxid列表
@@ -58,6 +58,14 @@ export interface MessagePayload {
   transType?: string // 1|即时到账 2|延时到账
 }
 
+export interface ChatRoomMember {
+  wxid: string,
+  groupNick: string,
+  avatar?: string,
+  inviterUserName?: string
+  displayName?: string
+}
+
 // 性别，1=男，2=女
 export enum SexType {
   MEN = 2,
@@ -68,13 +76,7 @@ export interface ContactPayload {
   /**
    * 头像大图，需在会话列表中
    */
-  avatarUrl: string;
-  /**
-   * 头像小图，需在会话列表中
-   */
-  avatarMinUrl?: string;
-
-  avatarMaxUrl?: string;
+  avatar: string;
   /**
    * 城市，需在会话列表中
    */
@@ -83,14 +85,6 @@ export interface ContactPayload {
    * 国家，需在会话列表中
    */
   country: string;
-  /**
-   * 英文简称，查询对象信息时此参数有效，获取XX列表时无效
-   */
-  enBrief?: string;
-  /**
-   * 英文全称，查询对象信息时此参数有效，获取XX列表时无效
-   */
-  enWhole?: string;
   /**
    * 群成员数量，仅当对象是群聊时有效
    */
@@ -102,16 +96,7 @@ export interface ContactPayload {
   /**
    * 昵称
    */
-  nick: string;
   name: string;
-  /**
-   * 昵称简拼
-   */
-  nickBrief?: string;
-  /**
-   * 昵称全拼
-   */
-  nickWhole?: string;
   /**
    * 省份，需在会话列表中
    */
@@ -121,14 +106,6 @@ export interface ContactPayload {
    */
   remark?: string;
   /**
-   * 备注简拼
-   */
-  remarkBrief?: string;
-  /**
-   * 备注全拼
-   */
-  remarkWhole?: string;
-  /**
    * 性别，1=男，2=女
    */
   sex: PUPPET.types.ContactGender;
@@ -136,14 +113,6 @@ export interface ContactPayload {
    * 签名，需在会话列表中
    */
   sign?: string;
-  /**
-   * V3数据，同意好友验证时使用
-   */
-  v3?: string;
-  /**
-   * V4数据，同意好友验证时使用
-   */
-  v4?: string;
   // v3 + '-' + v4
   ticket?: string;
   /**
@@ -172,14 +141,6 @@ export interface ContactPayload {
   scene?: string
 }
 
-export interface ChatRoomMember {
-  wxid: string,
-  groupNick: string,
-  avatar?: string,
-  inviterUserName?: string
-  displayName?: string
-}
-
 // 撤回 来源类型：1|好友 2|群聊
 enum RevokeFromType {
   CONTACT = 1,
@@ -203,28 +164,6 @@ export interface MessageRevokeInfo {
 export interface Label {
   name: string,
   id: string | number
-}
-
-export interface FriendShipPayload {
-  id: string,
-  wxid: string,
-  wxNum: string,
-  nick: string,
-  nickBrief: string,
-  nickWhole: string,
-  v3: string,
-  v4: string,
-  sign: string,
-  country: string,
-  province: string,
-  city: string,
-  avatarUrl: string
-  avatarMinUrl: string,
-  avatarMaxUrl: string,
-  sex: string,
-  content: string,
-  scene: string,
-  timestamp: number
 }
 
 export interface MusicPayLoad {

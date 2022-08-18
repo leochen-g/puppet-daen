@@ -1,17 +1,14 @@
-import * as http from 'http'
-import os from 'os'
-import express    from 'express'
-import bodyParser from 'body-parser'
+import fs from 'fs'
 import path from 'path'
 import { log }              from 'wechaty-puppet'
 import * as PUPPET          from 'wechaty-puppet'
 import type { FileBoxInterface } from 'file-box'
 import { FileBox }          from 'file-box'
-import cuid from 'cuid'
-import nodeUrl from 'url'
 import type { ContactPayload, MessagePayload, MusicPayLoad } from './engine-schema.js'
-import { WechatMessageType, FileBoxMetadataMessage } from './engine/types.js'
+import type { FileBoxMetadataMessage } from './engine/types.js'
 import Client from './engine/service/request.js'
+import { ImageDecrypt } from './engine/utils/image-decrypt.js'
+import { delay, getFileName, putFileTransfer } from './engine/utils/index.js'
 // 参考
 import { CacheManager, RoomMemberMap } from './engine/cache-manager.js'
 import { isIMContactId, isRoomId } from './engine/utils/is-type.js'
@@ -38,14 +35,16 @@ const SEARCH_CONTACT_PREFIX = '$search$-'
 const STRANGER_SUFFIX = '@stranger'
 
 export type PuppetEngineOptions = PUPPET.PuppetOptions & {
+  runLocal?: boolean,
   port?: number | string | undefined,
   httpServer?: string
+  engine?: any
 }
 
 class PuppetEngine extends PUPPET.Puppet {
 
   private _cacheMgr?: CacheManager;
-  private _client: Client = {} as Client;
+  private _client?: Client;
   private _printVersion: boolean = true;
   private _heartBeatTimer?: ReturnType<typeof setTimeout>;
   public static override readonly  VERSION = VERSION
@@ -53,8 +52,16 @@ class PuppetEngine extends PUPPET.Puppet {
   app: any
   server: any
 
-  constructor (public override options: PuppetEngineOptions = {}) {
+  constructor (public override options: PuppetEngineOptions = {} as PuppetEngineOptions) {
     super(options)
+    if (!this.options.engine) {
+      this.options.engine = Client
+    }
+    // 服务是不是跑在本地 默认为跑在本地
+    if (this.options.runLocal === undefined) {
+      this.options.runLocal = true
+    }
+
     if (!this.options.port) {
       const port = process.env['WECHATY_PUPPET_ENGINE_PORT'] || '8089'
       if (port) {
@@ -75,15 +82,15 @@ class PuppetEngine extends PUPPET.Puppet {
 
   override async onStart (): Promise<void> {
     log.verbose(PRE, 'onStart()')
-    this.app = express()
-    this.app.use(bodyParser.json({ limit: '200mb' }))
-    this.app.use(bodyParser.urlencoded({ extended: true }))
-    this.server = http.createServer(this.app)
-
-    const _port = this.options.port
-    this.server.listen(_port, async () => {
-      log.info(PRE, `Server is running on ${_port}`)
-    })
+    // this.app = express()
+    // this.app.use(bodyParser.json({ limit: '200mb' }))
+    // this.app.use(bodyParser.urlencoded({ extended: true }))
+    // this.server = http.createServer(this.app)
+    //
+    // const _port = this.options.port
+    // this.server.listen(_port, async () => {
+    //   log.info(PRE, `Server is running on ${_port}`)
+    // })
     await this._startClient()
   }
 
@@ -92,73 +99,27 @@ class PuppetEngine extends PUPPET.Puppet {
    * @private
    */
   private async _startClient () {
-
-    this._client = new Client(this.options)
+    this._client = await this.options.engine.create(this.options)
     await this._startPuppetHeart(true)
-    this.app.post('/wechat/', async (req: any, res: any) => {
-      const { type, data, wxid } = req.body
-      // response according to message type
-      log.info(PRE, `on hook:${JSON.stringify(data)}`)
-
-      switch (type) {
-        case 'D0001':
-          log.info(PRE, 'hook success')
-          break
-        case 'D0002':
-          log.silly(PRE, `login success: ${data.nick}`)
-          await this.login(wxid)
-          log.silly(PRE, 'login success: DONE')
-          break
-        case 'D0003':
-          log.info(PRE, 'recive message')
-          const msg = {
-            ...data,
-            listenerId: wxid,
-            id: cuid(),
-          }
-          await this._onPushMessage(msg)
-          break
-        case 'D0004':
-          log.info(PRE, 'transfer message')
-          const transferMsg = {
-            ...data,
-            listenerId: wxid,
-            msgType: WechatMessageType.Transfer,
-            timeStamp: Number(data.invalidtime),
-            id: cuid(),
-          }
-          await this._onPushMessage(transferMsg)
-          break
-        case 'D0005':
-          log.info(PRE, 'recall message')
-          break
-        case 'D0006':
-          log.info(PRE, 'friend request')
-          const friendShip = {
-            ...data,
-            type: 2,
-            id: cuid(),
-            hello: data.content,
-            timestamp: Number(data.timestamp),
-            contactId: data.wxid,
-            scene: Number(data.scene),
-            ticket: data.v3 + '-' + data.v4,
-          }
-          await this._friendRequestEvent(friendShip)
-          break
-      }
-      res.status(200).json({
-        code: 200,
-        msg: 'ok',
-        timestamp: '1657121317965',
+    if (this._client) {
+      this._client.on('hook', () => {
+        log.info(PRE, 'hook success')
       })
-      return null
-    })
+      this._client.on('login', this.wrapAsync(async ({ wxid, name }) => {
+        log.info(PRE, `login success: ${name}`)
+        await this.login(wxid)
+      }))
+      this._client.on('message', this.wrapAsync(async (message:MessagePayload) => {
+        await this._onPushMessage(message)
+      }))
+      this._client.on('contact', this.wrapAsync(async (friendShip:PUPPET.payloads.FriendshipReceive) => {
+        await this._friendRequestEvent(friendShip)
+      }))
+    }
     addRunningPuppet(this)
     if (this._printVersion) {
       // only print once
       this._printVersion = false
-
       log.info(`
       ============================================================
        Welcome to Wechaty Engine puppet!
@@ -181,12 +142,15 @@ class PuppetEngine extends PUPPET.Puppet {
   override async login (userId: string):Promise<void> {
     try {
       // create cache manager firstly
+      if (!this._client) {
+        this._client = await this.options.engine.create(this.options)
+      }
       this._cacheMgr = new CacheManager(userId)
       await this._cacheMgr.init()
       await super.login(userId)
 
       const oldContact = await this._cacheMgr.getContact(this.currentUserId!)
-      if (!oldContact) {
+      if (!oldContact && this._client) {
         // 获取机器人信息
         const selfContact = await this._client.getSelfInfo()
         await this._updateContactCache(selfContact)
@@ -199,19 +163,27 @@ class PuppetEngine extends PUPPET.Puppet {
 
   public async ready (): Promise<void> {
     try {
-      const contactList: ContactPayload[] = await this._client.getContactList('1')
+      const contactList: ContactPayload[] = await this._client?.getContactList('2') || []
       for (const contact of contactList) {
         await this._onPushContact(contact)
       }
-      const roomList: ContactPayload[] = await this._client.getGroupList('1')
+      const roomList: ContactPayload[] = await this._client?.getGroupList('2') || []
       for (const contact of roomList) {
-        await this._updateContactCache(contact)
+        await this._onPushContact(contact)
       }
-      const officeList: ContactPayload[] = await this._client.getOfficeList('1')
+      const officeList: ContactPayload[] = await this._client?.getOfficeList('2') || []
       for (const contact of officeList) {
-        await this._updateContactCache(contact)
+        await this._onPushContact(contact)
       }
       log.silly(PRE, 'on ready')
+      setTimeout(() => {
+        this._client?.setDownloadImg(1).then(() => {
+          log.info('set download all day')
+          return ''
+        }).catch(e => {
+          log.error('set download all day', e)
+        })
+      }, 3000)
       this.emit('ready', {
         data: 'ready',
       })
@@ -226,7 +198,9 @@ class PuppetEngine extends PUPPET.Puppet {
 
   private async _stopClient (): Promise<void> {
     this.__currentUserId = undefined
+    this.__currentUserId = undefined
     if (this._cacheMgr) {
+      log.info(PRE, 'colse cache')
       await this._cacheMgr.close()
       this._cacheMgr = undefined
     }
@@ -234,8 +208,13 @@ class PuppetEngine extends PUPPET.Puppet {
     this._stopPuppetHeart()
   }
 
+  // 登出
   override async logout (): Promise<void> {
-    log.warn('There is no need to use this method \'logout\' in a lark bot.')
+    if (!this.isLoggedIn) {
+      return
+    }
+    this.emit('logout', { contactId: this.currentUserId, data: 'logout by self' })
+    await this._stopClient()
   }
 
   override ding (data?: string): void {
@@ -296,7 +275,7 @@ class PuppetEngine extends PUPPET.Puppet {
             }
           }
         } else {
-          await this._client.setContactAlias(contactId, alias)
+          await this._client?.setContactAlias(contactId, alias)
           contact.remark = alias
           await this._updateContactCache(contact)
         }
@@ -316,7 +295,7 @@ class PuppetEngine extends PUPPET.Puppet {
     }
     const contact = await this.contactRawPayload(contactId)
     if (contact) {
-      return FileBox.fromUrl(contact.avatarUrl, { name: `avatar-${contactId}.jpg` })
+      return FileBox.fromUrl(contact.avatar, { name: `avatar-${contactId}.jpg` })
     }
   }
 
@@ -338,11 +317,11 @@ class PuppetEngine extends PUPPET.Puppet {
   // 删除联系人
   public async contactDelete (contactId: string): Promise<void> {
     const contact = await this._refreshContact(contactId)
-    if (contact.isFriend === 2) {
+    if (contact && contact.isFriend === 2) {
       log.warn(`can not delete contact which is not a friend:: ${contactId}`)
       return
     }
-    await this._client.removeContact(contactId)
+    await this._client?.removeContact(contactId)
     await this._refreshContact(contactId, 2)
   }
 
@@ -383,7 +362,7 @@ class PuppetEngine extends PUPPET.Puppet {
     if (isIMContactId(userName)) {
       await this._refreshContact(userName)
     }
-    await this._client.confirmFriendship(friendship.scene, friendship.ticket.split('-')[0], friendship.ticket.split('-')[1])
+    await this._client?.confirmFriendship(friendship.scene, friendship.ticket.split('-')[0], friendship.ticket.split('-')[1])
   }
 
   /**
@@ -413,8 +392,10 @@ class PuppetEngine extends PUPPET.Puppet {
         if (!roomIds.length) {
           throw new Error(`Can not find room for contact while adding friendship: ${contactId}`)
         }
-        const res = await this._client.searchContact(contactId)
-        await this._updateContactCache(res)
+        const res = await this._client?.searchContact(contactId)
+        if (res) {
+          await this._updateContactCache(res)
+        }
         addContactScene = '14' // 1=qq 3=微信号 6=单向添加 10和13=通讯录 14=群聊 15=手机号 17=名片 30=扫一扫
       }
       const res = await this.contactRawPayload(contactId)
@@ -438,9 +419,9 @@ class PuppetEngine extends PUPPET.Puppet {
       }
     }
     if (addType === 'v3') {
-      await this._client.addFriendByV3({ scene: addContactScene, v3: ticket.split('-')[0], content: hello, type: 1 })
+      await this._client?.addFriendByV3({ content: hello, scene: addContactScene, type: 1, v3: ticket.split('-')[0] })
     } else if (addType === 'wxid') {
-      await this._client.addFriendByWxid({ scene: addContactScene, wxid: contactId, content: hello })
+      await this._client?.addFriendByWxid({ content: hello, scene: addContactScene, wxid: contactId })
     }
   }
 
@@ -472,11 +453,11 @@ class PuppetEngine extends PUPPET.Puppet {
       return id
     }
 
-    const res = await this._client.searchStranger(id)
-
+    const res = await this._client?.searchStranger(id)
     const searchId = `${SEARCH_CONTACT_PREFIX}${id}`
-    await this._cacheMgr!.setContactSearch(searchId, { ...res, scene: scene })
-
+    if (res) {
+      await this._cacheMgr!.setContactSearch(searchId, { ...res, scene: scene })
+    }
     return searchId
   }
 
@@ -527,6 +508,9 @@ class PuppetEngine extends PUPPET.Puppet {
         return PUPPET.throwUnsupportedError(messageId)
       }
       case PUPPET.types.Message.Attachment:
+        if (message.text && message.text.includes('[file=')) {
+          return this._getMessageFileFileBox(messageId, messagePayload)
+        }
         return PUPPET.throwUnsupportedError(messageId)
       case PUPPET.types.Message.Emoticon: {
         const emotionPayload = await parseEmotionMessagePayload(messagePayload)
@@ -603,24 +587,24 @@ class PuppetEngine extends PUPPET.Puppet {
     const contactPayload = await this.contactRawPayload(contactId)
     const xmlObj = {
       msg: {
-        bigheadimgurl: contactPayload?.avatarMaxUrl,
-        smallheadimgurl: contactPayload?.avatarMinUrl,
-        username: contactPayload?.v3,
-        nickname: contactPayload?.nick,
-        fullpy: contactPayload?.nickWhole,
-        imagestatus: '3',
-        scene: '17',
-        province: contactPayload?.province,
-        city: contactPayload?.city,
-        sex: contactPayload?.sex,
-        certflag: '0',
-        brandFlags: '0',
-        regionCode: 'CN_Shanghai',
         antispamticket: '', // TODO 需要考虑怎么设置
+        bigheadimgurl: contactPayload?.avatar,
+        brandFlags: '0',
+        certflag: '0',
+        city: contactPayload?.city,
+        fullpy: contactPayload?.name,
+        imagestatus: '3',
+        nickname: contactPayload?.name,
+        province: contactPayload?.province,
+        regionCode: 'CN_Shanghai',
+        scene: '17',
+        sex: contactPayload?.sex,
+        smallheadimgurl: contactPayload?.avatar,
+        username: contactPayload?.ticket,
       },
     }
     const xml = JsonToXml(xmlObj)
-    await this._client.sendContactCard(toUserId, xml)
+    await this._client?.sendContactCard(toUserId, xml)
   }
 
   // 发送文件
@@ -629,22 +613,31 @@ class PuppetEngine extends PUPPET.Puppet {
     if (metadata.type === 'emoticon') {
       PUPPET.throwUnsupportedError(conversationId, fileBox)
     } else if (fileBox.mediaType.startsWith('image/')) {
-      const filePath = path.resolve(fileBox.name)
-      log.verbose('filePath===============', filePath)
-      await fileBox.toFile(filePath, true)
-      await this._client.sendLocalImg(conversationId, filePath)
+      if (this.options.runLocal) {
+        const filePath = path.resolve(fileBox.name)
+        log.verbose('filePath===============', filePath)
+        await fileBox.toFile(filePath, true)
+        await this._client?.sendLocalImg(conversationId, filePath)
+        fs.unlinkSync(filePath)
+      } else {
+        const buffer = await fileBox.toBuffer()
+        const cdnUrl = await putFileTransfer(fileBox.name, buffer)
+        await this._client?.sendLocalImg(conversationId, cdnUrl)
+      }
     } else if (fileBox.mediaType === 'audio/silk') {
       PUPPET.throwUnsupportedError(conversationId, fileBox)
-    } else if (fileBox.mediaType.startsWith('video/')) {
-      const filePath = path.resolve(fileBox.name)
-      log.verbose('filePath===============', filePath)
-      await fileBox.toFile(filePath, true)
-      await this._client.sendLocalFile(conversationId, filePath)
     } else {
-      const filePath = path.resolve(fileBox.name)
-      log.verbose('filePath===============', filePath)
-      await fileBox.toFile(filePath, true)
-      await this._client.sendLocalFile(conversationId, filePath)
+      if (this.options.runLocal) {
+        const filePath = path.resolve(fileBox.name)
+        log.verbose('filePath===============', filePath)
+        await fileBox.toFile(filePath, true)
+        await this._client?.sendLocalFile(conversationId, filePath)
+        fs.unlinkSync(filePath)
+      } else {
+        const buffer = await fileBox.toBuffer()
+        const cdnUrl = await putFileTransfer(fileBox.name, buffer)
+        await this._client?.sendLocalFile(conversationId, cdnUrl)
+      }
     }
   }
 
@@ -652,38 +645,18 @@ class PuppetEngine extends PUPPET.Puppet {
   override async messageSendMiniProgram (toUserName: string, mpPayload: PUPPET.payloads.MiniProgram): Promise<void> {
     const miniProgram = {
       contactId: toUserName,
-      title: mpPayload.title,
       content: mpPayload.description,
-      jumpUrl: mpPayload.pagePath,
       gh: mpPayload.username,
-      path: '',
-    }
-
-    if (mpPayload.thumbUrl) {
-      // 2. http url
-      const parsedUrl = new nodeUrl.URL(mpPayload.thumbUrl)
-      if (parsedUrl.protocol.startsWith('http')) {
-        // download the image data
-        const imageBox = FileBox.fromUrl(mpPayload.thumbUrl, 'mini.jpg')
-        const baseDir = path.join(
-          os.homedir(),
-          path.sep,
-          '.wechaty',
-          'puppet-engine-cache',
-          path.sep,
-          this.currentUserId,
-          path.sep,
-        )
-        await imageBox.toFile(baseDir + '/mini/mini.jpg', true)
-        miniProgram.path = baseDir + '/mini/mini.jpg'
-      }
+      jumpUrl: mpPayload.pagePath,
+      path: mpPayload.thumbUrl,
+      title: mpPayload.title,
     }
 
     if (!mpPayload.thumbUrl) {
       log.warn(PRE, 'no thumb image found while sending mimi program')
     }
 
-    await this._client.sendMiniProgram(miniProgram)
+    await this._client?.sendMiniProgram(miniProgram)
   }
 
   // 发送文字
@@ -693,49 +666,29 @@ class PuppetEngine extends PUPPET.Puppet {
       for (const item in mentionIdList) {
         const contact = await this._cacheMgr?.getContactSearch(item)
         if (contact) {
-          mention = mention + `[@,wxid=${contact.wxid},nick=${contact.nick},isAuto=true]`
+          mention = mention + `[@,wxid=${contact.wxid},nick=${contact.name},isAuto=true]`
         }
       }
     }
     if (mention) {
       text = mention + text
     }
-    await this._client.sendText(conversationId, text)
+    await this._client?.sendText(conversationId, text)
   }
 
   // 发送h5链接
   override async messageSendUrl (conversationId: string, urlLinkPayload: PUPPET.payloads.UrlLink): Promise<string | void> {
     const urlCard = {
       contactId: conversationId,
-      title: urlLinkPayload.title,
       content: urlLinkPayload.description,
       jumpUrl: urlLinkPayload.url,
-      path: '',
-    }
-    if (urlLinkPayload.thumbnailUrl) {
-      // 2. http url
-      const parsedUrl = new nodeUrl.URL(urlLinkPayload.thumbnailUrl)
-      if (parsedUrl.protocol.startsWith('http')) {
-        // download the image data
-        const imageBox = FileBox.fromUrl(urlLinkPayload.thumbnailUrl, 'url.jpg')
-        const baseDir = path.join(
-          os.homedir(),
-          path.sep,
-          '.wechaty',
-          'puppet-engine-cache',
-          path.sep,
-          this.currentUserId,
-          path.sep,
-        )
-        await imageBox.toFile(baseDir + '/url/url.jpg', true)
-        urlCard.path = baseDir + '/url/url.jpg'
-      }
+      path: urlLinkPayload.thumbnailUrl,
+      title: urlLinkPayload.title,
     }
     if (!urlLinkPayload.thumbnailUrl) {
-      log.warn(PRE, 'no thumb image found while sending url')
+      log.warn(PRE, 'no thumb image found while sending mimi program')
     }
-
-    await this._client.sendShareCard(urlCard)
+    await this._client?.sendShareCard(urlCard)
   }
 
   /**
@@ -751,6 +704,8 @@ class PuppetEngine extends PUPPET.Puppet {
       if (transferid.type !== 'Text') {
         throw new Error('Wrong Post!!! please check your Post payload to make sure it right')
       }
+      // 收到转账 延时 1s 进行确认
+      await delay(1000)
       await this._sendConfirmTransfer(conversationId, transferid.payload.text)
     } else if (msgType.payload.text === 'music') {
       const name = postPayload.sayableList[1] as PUPPET.payloads.Sayable
@@ -763,12 +718,12 @@ class PuppetEngine extends PUPPET.Puppet {
         throw new Error('Wrong Post!!! please check your Post payload to make sure it right')
       }
       const musicPayload = {
-        name: name.payload.text,
-        author: author.payload.text,
         app: app.payload.text, // 酷狗/wx79f2c4418704b4f8，网易云/wx8dd6ecd81906fd84，QQ音乐/wx5aa333606550dfd5
+        author: author.payload.text,
+        imageUrl: imageUrl.payload.text, // 网络图片直链
         jumpUrl: jumpUrl.payload.text, // 点击后跳转地址
         musicUrl: musicUrl.payload.text, // 网络歌曲直链
-        imageUrl: imageUrl.payload.text, // 网络图片直链
+        name: name.payload.text,
       }
       await this._sendMusicCard(conversationId, musicPayload)
     }
@@ -780,7 +735,7 @@ class PuppetEngine extends PUPPET.Puppet {
    * @param transferid
    */
   public async _sendConfirmTransfer (conversationId: string, transferid: string): Promise<void> {
-    await this._client.confirmTransfer(conversationId, transferid)
+    await this._client?.confirmTransfer(conversationId, transferid)
   }
 
   /**
@@ -789,7 +744,7 @@ class PuppetEngine extends PUPPET.Puppet {
    * @param musicPayLoad
    */
   public async _sendMusicCard (conversationId: string, musicPayLoad:MusicPayLoad): Promise<void> {
-    await this._client.sendMusic({ contactId: conversationId, ...musicPayLoad })
+    await this._client?.sendMusic({ contactId: conversationId, ...musicPayLoad })
   }
 
   /**
@@ -846,17 +801,17 @@ class PuppetEngine extends PUPPET.Puppet {
         type = 2
       }
     }
-    await this._client.inviteToGroup(roomId, contactId, type)
+    await this._client?.inviteToGroup(roomId, contactId, type)
   }
 
   // 获取群头像
   override async roomAvatar (roomId: string): Promise<FileBoxInterface> {
     const chatroom = await this.roomRawPayload(roomId)
-    if (chatroom.avatarUrl) {
-      return FileBox.fromUrl(chatroom.avatarUrl)
+    if (chatroom && chatroom.avatar) {
+      return FileBox.fromUrl(chatroom.avatar)
     } else {
       // return dummy FileBox object
-      return FileBox.fromBuffer(Buffer.from(new ArrayBuffer(0)), `room-${chatroom.nick}-avatar.jpg`)
+      return FileBox.fromBuffer(Buffer.from(new ArrayBuffer(0)), 'room-avatar.jpg')
     }
   }
 
@@ -899,7 +854,7 @@ class PuppetEngine extends PUPPET.Puppet {
     roomId : string,
     topic? : string,
   ): Promise<void | string> {
-    await this._client.setGroupName(roomId, topic)
+    await this._client?.setGroupName(roomId, topic)
   }
 
   override async roomAnnounce (roomId: string)                : Promise<string>
@@ -944,12 +899,12 @@ class PuppetEngine extends PUPPET.Puppet {
     }
 
     let ret = await this._cacheMgr!.getContact(id)
-
     if (!ret) {
       ret = await CachedPromiseFunc(`contactRawPayload-${id}`, async () => {
         const contact = await this._refreshContact(id)
         return contact
       })
+      return ret
     }
     return ret
   }
@@ -987,14 +942,12 @@ class PuppetEngine extends PUPPET.Puppet {
    * 查找群基础信息
    * @param id
    */
-  override async roomRawPayload (id: string): Promise<ContactPayload> {
+  override async roomRawPayload (id: string): Promise<ContactPayload|undefined> {
     let ret = await this._cacheMgr!.getRoom(id)
-
     if (!ret) {
       const contact = await this._refreshContact(id)
       ret = contact
     }
-
     return ret
   }
 
@@ -1067,7 +1020,7 @@ class PuppetEngine extends PUPPET.Puppet {
 
     let ret = await this._cacheMgr!.getRoomMember(roomId)
     if (!ret || force) {
-      const resMembers = await this._client.getGroupMembers(roomId)
+      const resMembers = await this._client?.getGroupMembers(roomId) || []
 
       const roomMemberMap: RoomMemberMap = {}
       for (const roomMember of resMembers) {
@@ -1075,16 +1028,18 @@ class PuppetEngine extends PUPPET.Puppet {
         let MemberInfo: ContactPayload
         // save chat room member as contact, to forbid massive this._client.api.getContact(id) requests while room.ready()
         if (!hasContact) {
-          const res = await this._client.searchContact(roomMember.wxid)
-          MemberInfo = chatRoomMemberToContact(res)
-          await this._cacheMgr!.setContact(MemberInfo.wxid, MemberInfo)
+          const res = await this._client?.searchContact(roomMember.wxid)
+          if (res) {
+            MemberInfo = chatRoomMemberToContact(res)
+            await this._cacheMgr!.setContact(MemberInfo.wxid, MemberInfo)
+            roomMemberMap[roomMember.wxid] = MemberInfo
+          }
         } else {
           MemberInfo = await this._cacheMgr!.getContact(roomMember.wxid) as ContactPayload
+          roomMemberMap[roomMember.wxid] = MemberInfo
         }
-        roomMemberMap[roomMember.wxid] = MemberInfo
       }
       ret = roomMemberMap
-
       await this._updateRoomMember(roomId, roomMemberMap)
     }
 
@@ -1094,7 +1049,7 @@ class PuppetEngine extends PUPPET.Puppet {
   // 更新联系人缓存
   private async _updateContactCache (contact: ContactPayload): Promise<void> {
     if (!contact.wxid) {
-      log.warn(PRE, `username is required for contact: ${JSON.stringify(contact)}`)
+      log.warn(PRE, `wxid is required for contact: ${JSON.stringify(contact)}`)
       return
     }
 
@@ -1102,15 +1057,15 @@ class PuppetEngine extends PUPPET.Puppet {
       const oldRoomPayload = await this._cacheMgr!.getRoom(contact.wxid)
       if (oldRoomPayload) {
         // some contact push may not contain avatar, e.g. modify room announcement
-        if (!contact.avatarUrl) {
-          contact.avatarUrl = oldRoomPayload.avatarUrl
+        if (!contact.avatar) {
+          contact.avatar = oldRoomPayload.avatar
         }
 
         // If case you are not the chatroom owner, room leave message will not be sent.
         // Calc the room member diffs, then send room leave event instead.
         if (contact.chatroommemberList && oldRoomPayload.chatroommemberList && contact.chatroommemberList.length < oldRoomPayload.chatroommemberList.length) {
           const newMemberIdSet = new Set(contact.chatroommemberList.map((m) => m.wxid))
-          const removedMemberIdList = (oldRoomPayload.chatroommemberList || [])
+          const removedMemberIdList = oldRoomPayload.chatroommemberList
             .filter((m) => !newMemberIdSet.has(m.wxid))
             .map((m) => m.wxid)
             .filter((removeeId) => !isRoomLeaveDebouncing(contact.wxid, removeeId))
@@ -1149,6 +1104,23 @@ class PuppetEngine extends PUPPET.Puppet {
     }
 
     await this.dirtyPayload(PUPPET.types.Payload.RoomMember, roomId)
+  }
+
+  /**
+   * 更新群成员信息
+   * @param roomId
+   */
+  public async _updateRoom (roomId:string) {
+    console.log('inininin', roomId)
+    if (!roomId) {
+      log.warn(PRE, 'roomid is required for updateRoom')
+      return
+    }
+    await delay(1000)
+    const contact: ContactPayload | undefined = await this._client?.searchContact(roomId)
+    if (contact) {
+      await this._onPushContact(contact)
+    }
   }
 
   // 添加好友信息到缓存
@@ -1211,15 +1183,17 @@ class PuppetEngine extends PUPPET.Puppet {
   }
 
   // 刷新用户信息
-  private async _refreshContact (wxid: string, isFriend?: number): Promise<ContactPayload> {
-    const contact = await this._client.searchContact(wxid)
+  private async _refreshContact (wxid: string, isFriend?: number): Promise<ContactPayload | undefined> {
+    const contact = await this._client?.searchContact(wxid)
     // may return contact with empty payload, empty username, nickname, etc.
-    if (!contact.wxid) {
+    if (contact && !contact.wxid) {
       contact.wxid = wxid
+      await this._updateContactCache({ ...contact, isFriend })
+      return contact
+    } else if (contact) {
+      return contact
     }
-    await this._updateContactCache({ ...contact, isFriend })
-
-    return contact
+    return undefined
   }
 
   // 开始监听心跳
@@ -1228,27 +1202,37 @@ class PuppetEngine extends PUPPET.Puppet {
       return
     }
     let status: string|undefined = ''
-    if (this._client) {
-      try {
-        const { code, errorMsg, wxid, nick } = await this._client.getStats()
-        if (!code) {
-          status = 'normal'
-          if (firstTime) {
-            await this.login(wxid)
-            log.info(PRE, `login success: ${nick}`)
-          }
-        } else {
-          status = errorMsg
-          log.info(PRE, `login fail: ${code}:${errorMsg}`)
+    try {
+      const res = await this._client?.getStats()
+      if (res && res.status === 'normal') {
+        status = 'normal'
+        if (firstTime) {
+          res.wxid && await this.login(res.wxid)
+          log.info(PRE, `login success: ${res.name}`)
         }
-      } catch (e) {
-        status = 'unlogin'
-        log.info(PRE, 'login fail: WeChat is not activated')
+      } else if (res && res.status === 'pending') {
+        status = 'pending'
+        log.info(PRE, 'pending, please wait confirm')
+      } else {
+        status = 'fail'
+        log.info(PRE, `login fail: ${res?.msg}`)
+        if (!firstTime) {
+          await this.onStop()
+        }
+      }
+    } catch (e) {
+      status = 'unlogin'
+      log.info(PRE, `login fail: WeChat is not activated ${e}`)
+      if (!firstTime) {
+        await this.onStop()
       }
     }
+
     this.emit('heartbeat', { data: `heartbeat@engine:${status}` })
-    this._heartBeatTimer = setTimeout(() => {
-      this._startPuppetHeart(false)
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    this._heartBeatTimer = setTimeout(async (): Promise<void> => {
+      await this._startPuppetHeart(false)
+      return undefined
     }, 15 * 1000) // 15s
   }
 
@@ -1268,7 +1252,7 @@ class PuppetEngine extends PUPPET.Puppet {
    * @param messagePayload
    * @private
    */
-  private async _getMessageImageFileBox (messageId: string, messagePayload: MessagePayload) {
+  private async _getMessageImageFileBox (messageId: string, messagePayload: MessagePayload):Promise<FileBoxInterface> {
     const message: PUPPET.payloads.Message = await this.messageRawPayloadParser(messagePayload)
     if (!message.text) {
       throw new Error(`Can not get file for message: ${messageId}`)
@@ -1280,10 +1264,73 @@ class PuppetEngine extends PUPPET.Puppet {
     const res = message.text && reg.exec(message.text)
     const path = res?.[1]
     const isDecrypt = res?.[2]
+    await delay(4000)
+    if (this.options.runLocal && path && !fs.existsSync(path)) {
+      log.error(PRE, `Can not get file path: ${messageId} , isDecrypt${isDecrypt}`)
+    }
+    // 如果文件已经解密
     if (path && isDecrypt && isDecrypt === '1') {
-      return FileBox.fromFile(path, `message-${messageId}-image-.jpg`)
+      // 如果服务运行在本地 直接读取文件
+      if (this.options.runLocal) {
+        return FileBox.fromFile(path, `message-${messageId}-image.png`)
+      } else {
+        // 不在本地运行，拉取图片数据流
+        const fileName = getFileName(path)
+        const fileBox = await this._client?.getImage(fileName)
+        if (fileBox) {
+          return fileBox
+        }
+      }
+    } else if (path && isDecrypt === '0') {
+      if (this.options.runLocal) {
+        const imageInfo = ImageDecrypt(path, messageId)
+        const base64 = imageInfo.base64
+        const fileName = `message-${messageId}-url.${imageInfo.extension}`
+        return FileBox.fromBase64(
+          base64,
+          fileName,
+        )
+      }
     }
     throw new Error(`Can not get file path: ${messageId} , isDecrypt${isDecrypt}`)
+  }
+
+  /**
+   * 解析文件
+   * @param messageId
+   * @param messagePayload
+   * @private
+   */
+  private async _getMessageFileFileBox (messageId: string, messagePayload: MessagePayload):Promise<FileBoxInterface> {
+    const message: PUPPET.payloads.Message = await this.messageRawPayloadParser(messagePayload)
+    if (!message.text) {
+      throw new Error(`Can not get file for message: ${messageId}`)
+    }
+    if (message.type !== PUPPET.types.Message.Attachment) {
+      throw new Error(`message ${messageId} is not file type message`)
+    }
+    const reg = /\[file=(.+)]/
+    const res = message.text && reg.exec(message.text)
+    const path = res?.[1]
+    const fileName = message.filename || ''
+    await delay(1000)
+    if (this.options.runLocal && path && !fs.existsSync(path)) {
+      throw new Error(`Can not get file path: ${messageId} `)
+    }
+    // 如果文件已经解密
+    if (path) {
+      // 如果服务运行在本地 直接读取文件
+      if (this.options.runLocal) {
+        return FileBox.fromFile(path, fileName)
+      } else {
+        // 不在本地运行，拉取数据流
+        const file = await this._client?.getFile(fileName)
+        if (file) {
+          return  FileBox.fromBuffer(file, fileName)
+        }
+      }
+    }
+    throw new Error(`Can not get file path: ${messageId}`)
   }
 
 }

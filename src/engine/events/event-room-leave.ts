@@ -50,6 +50,8 @@ export default async (puppet: PUPPET.Puppet, message: MessagePayload): Promise<E
   if (!isRoomId(roomId) || message.msgType !== WechatMessageType.Sys) {
     return null
   }
+  // @ts-ignore
+  await puppet._updateRoom(roomId)
 
   /**
    * 1. 我将别人移除

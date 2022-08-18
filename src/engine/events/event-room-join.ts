@@ -7,7 +7,7 @@ import { executeRunners } from '../utils/runner.js'
 import { WechatMessageType } from '../types.js'
 
 const YOU_INVITE_OTHER_REGEX_LIST = [
-  /^你邀请"(.+)"加入了群聊 {2}\$revoke\$/,
+  /^你邀请"(.+)"加入了群聊 {2}/,
   /^You invited (.+) to the group chat/,
 ]
 const OTHER_INVITE_YOU_REGEX_LIST = [
@@ -42,7 +42,8 @@ export default async (puppet: PUPPET.Puppet, message: MessagePayload): Promise<E
   if (message.msgType !== WechatMessageType.Sys) {
     return null
   }
-
+  // @ts-ignore
+  await puppet._updateRoom(roomId)
   /**
    * 1. You Invite Other to join the Room
    * (including other join var qr code you shared)
@@ -52,6 +53,8 @@ export default async (puppet: PUPPET.Puppet, message: MessagePayload): Promise<E
   const youInviteOther = async () => {
     let matches: null | string[] = null;
     [...YOU_INVITE_OTHER_REGEX_LIST, ...OTHER_JOIN_VIA_YOUR_QRCODE_REGEX_LIST].some((re) => !!(matches = message.msg.match(re)))
+    console.log('match youInviteOther', matches)
+
     if (matches) {
       const inviteName = matches[1]!
       const inviteeId = (await puppet.roomMemberSearch(roomId, inviteName))[0]!
@@ -97,10 +100,10 @@ export default async (puppet: PUPPET.Puppet, message: MessagePayload): Promise<E
     [...OTHER_INVITE_YOU_AND_OTHER_REGEX_LIST, ...OTHER_INVITE_OTHER_REGEX_LIST].some((re) => !!(matches = message.msg.match(re)))
     if (matches) {
       const inviteeIdList = []
-      const inviterName = matches[1]!
-      const inviterId = (await puppet.roomMemberSearch(roomId, inviterName))[0]!
+      const inviterName = matches[1]
+      const inviterId = (await puppet.roomMemberSearch(roomId, inviterName))[0]
       const inviteeName = matches[2]
-      const inviteeId = (await puppet.roomMemberSearch(roomId, inviteeName))[0]!
+      const inviteeId = (await puppet.roomMemberSearch(roomId, inviteeName))[0]
       // 如果包含ni则把机器人的id放进去
       if (message.msg.includes('你')) {
         inviteeIdList.push(puppet.currentUserId)
@@ -141,7 +144,6 @@ export default async (puppet: PUPPET.Puppet, message: MessagePayload): Promise<E
     }
     return null
   }
-
   const ret = await executeRunners([youInviteOther, otherInviteYou, otherInviteOther, otherJoinViaQrCode])
   if (ret) {
     ret.inviteeIdList.forEach((inviteeId) => {

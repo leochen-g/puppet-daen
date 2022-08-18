@@ -5,20 +5,20 @@ import type * as PUPPET from 'wechaty-puppet'
 export function engineRoomToWechaty (contact: ContactPayload): PUPPET.payloads.Room {
   return {
     adminIdList: [],
-    avatar: contact.avatarMinUrl || contact.avatarMaxUrl,
+    avatar: contact.avatar,
     id: contact.wxid,
     memberIdList: contact.chatroommemberList?.map(c => c.wxid) || [],
     ownerId: contact.ownerId,
-    topic: contact.nick,
+    topic: contact.name,
   }
 }
 
 export function engineRoomMemberToWechaty (chatRoomMember: ContactPayload): PUPPET.payloads.RoomMember {
   return {
-    avatar: chatRoomMember.avatarUrl || chatRoomMember.avatarMinUrl || chatRoomMember.avatarMaxUrl || '',
+    avatar: chatRoomMember.avatar,
     id: chatRoomMember.wxid,
     inviterId: '',
-    name: chatRoomMember.nick,
+    name: chatRoomMember.name,
     roomAlias: chatRoomMember.remark,
   }
 }
