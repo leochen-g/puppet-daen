@@ -90,6 +90,22 @@ hook事件|✅
 
 > [Wechaty puppet compatibility](https://github.com/wechaty/wechaty-puppet/wiki/Compatibility)
 
+## CLIENT-TS
+
+This project is a puppet engine. So it can adapt to multiple clients.At present, a hook client has been built in, ant its name is daen-client-ts.
+
+### use daen-client-ts
+
+Daen-client-ts is default client.
+
+1. You need to download the [WeChatSetup-v3.6.0.18.exe]()
+2. Go to the open source project [DaenWxHook](https://gitee.com/daenmax/pc-wechat-hook-http-api/tree/master/DaenWxHook) to download dll and dll injector.
+
+## HISTORY
+
+v1.0.1 (Aug 19, 2022)
+Initial version
+
 ## Author
 
 [@Leo_chen](https://github.com/leochen-g)
