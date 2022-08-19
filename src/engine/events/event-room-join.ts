@@ -53,8 +53,8 @@ export default async (puppet: PUPPET.Puppet, message: MessagePayload): Promise<E
   const youInviteOther = async () => {
     let matches: null | string[] = null;
     [...YOU_INVITE_OTHER_REGEX_LIST, ...OTHER_JOIN_VIA_YOUR_QRCODE_REGEX_LIST].some((re) => !!(matches = message.msg.match(re)))
-    console.log('match youInviteOther', matches)
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (matches) {
       const inviteName = matches[1]!
       const inviteeId = (await puppet.roomMemberSearch(roomId, inviteName))[0]!
@@ -76,6 +76,7 @@ export default async (puppet: PUPPET.Puppet, message: MessagePayload): Promise<E
   const otherInviteYou = async () => {
     let matches: null | string[] = null
     OTHER_INVITE_YOU_REGEX_LIST.some((re) => !!(matches = message.msg.match(re)))
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (matches) {
       const inviteName = matches[1]!
       const inviterId = (await puppet.roomMemberSearch(roomId, inviteName))[0]!
@@ -98,6 +99,7 @@ export default async (puppet: PUPPET.Puppet, message: MessagePayload): Promise<E
   const otherInviteOther = async () => {
     let matches: null | string[] = null;
     [...OTHER_INVITE_YOU_AND_OTHER_REGEX_LIST, ...OTHER_INVITE_OTHER_REGEX_LIST].some((re) => !!(matches = message.msg.match(re)))
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (matches) {
       const inviteeIdList = []
       const inviterName = matches[1]
@@ -126,6 +128,7 @@ export default async (puppet: PUPPET.Puppet, message: MessagePayload): Promise<E
   const otherJoinViaQrCode = async () => {
     let matches: null | string[] = null
     OTHER_JOIN_VIA_OTHER_QRCODE_REGEX_LIST.some((re) => !!(matches = message.msg.match(re)))
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (matches) {
       const inviteeIdList = []
 

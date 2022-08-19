@@ -61,6 +61,7 @@ export default async (puppet: PUPPET.Puppet, message: MessagePayload): Promise<E
   const youRemoveOther = async () => {
     let matches: null | string[] = null
     YOU_REMOVE_OTHER_REGEX_LIST.some((re) => !!(matches = message.msg.match(re)))
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (matches) {
       const removerName = matches[2]!
       const removerId = (await puppet.roomMemberSearch(roomId, removerName))[0]!

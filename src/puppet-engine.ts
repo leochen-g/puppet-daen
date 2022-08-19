@@ -1111,7 +1111,6 @@ class PuppetEngine extends PUPPET.Puppet {
    * @param roomId
    */
   public async _updateRoom (roomId:string) {
-    console.log('inininin', roomId)
     if (!roomId) {
       log.warn(PRE, 'roomid is required for updateRoom')
       return
