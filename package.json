@@ -15,16 +15,11 @@
     "wechaty-puppet": ">=1.20"
   },
   "scripts": {
-    "start:test": "node --loader ts-node/esm index.ts",
-    "build": "tsc && tsc -p tsconfig.cjs.json",
     "clean": "shx rm -fr dist/*",
-    "dist": "npm-run-all clean build dist:commonjs dist:copy",
+    "dist": "npm-run-all clean build dist:commonjs",
+    "build": "tsc && tsc -p tsconfig.cjs.json",
     "dist:commonjs": "jq -n \"{ type: \\\"commonjs\\\" }\" > dist/cjs/package.json",
-    "dist:copy": "npm-run-all copy:esm copy:cjs",
-    "copy:js": "shx cp src/*.js dist/src/",
-    "copy:esm": "shx cp -R commonjs/ dist/esm/ && shx cp src/*.js dist/esm/src/",
-    "copy:cjs": "shx cp -R commonjs/ dist/cjs/ && shx cp src/*.js dist/cjs/src/",
-    "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
+    "lint": "npm-run-all lint:es lint:ts lint:md",
     "lint:es": "eslint --ignore-pattern fixtures/ \"src/**/*.ts\" \"tests/**/*.ts\"",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tsc --isolatedModules --noEmit",
@@ -32,14 +27,16 @@
     "test": "npm-run-all lint test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "lint:fix": "eslint --fix \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
-    "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" TAP_TIMEOUT=60 tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\""
+    "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" TAP_TIMEOUT=60 tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "start:test": "node --loader ts-node/esm examples/ding-dong-bot.ts"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wechaty/wechaty-puppet-lark.git"
+    "url": "git+https://github.com/leochen-g/wechaty-puppet-engine.git"
   },
   "keywords": [
     "wechaty",
+    "engine",
     "chatbot",
     "bot",
     "grpc",
@@ -52,9 +49,9 @@
   ],
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/wechaty/wechaty-puppet-engine/issues"
+    "url": "https://github.com/leochen-g/wechaty-puppet-engine/issues"
   },
-  "homepage": "https://github.com/wechaty/wechaty-puppet-engine#readme",
+  "homepage": "https://github.com/leochen-g/wechaty-puppet-engine#readme",
   "devDependencies": {
     "@chatie/eslint-config": "^1.0.4",
     "@chatie/git-scripts": "^0.6.2",
@@ -68,6 +65,9 @@
     "pkg-jq": "^0.2.11",
     "ts-node": "^10.9.1",
     "wechaty": "^1.20.2",
+    "wechaty-puppet": "^1.20.2"
+  },
+  "peerDependencies": {
     "wechaty-puppet": "^1.20.2"
   },
   "dependencies": {

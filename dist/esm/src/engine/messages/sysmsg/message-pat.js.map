@@ -1,0 +1,1 @@
+{"version":3,"file":"message-pat.js","sourceRoot":"","sources":["../../../../../../src/engine/messages/sysmsg/message-pat.ts"],"names":[],"mappings":"AAcA,MAAM,CAAC,KAAK,UAAU,sBAAsB,CAAE,MAAoB;IAChE,OAAO;QACL,YAAY,EAAE,MAAM,CAAC,YAAY;QACjC,YAAY,EAAE,MAAM,CAAC,YAAY;QACjC,cAAc,EAAE,MAAM,CAAC,cAAc;QACrC,QAAQ,EAAE,MAAM,CAAC,QAAQ;KAC1B,CAAA;AACH,CAAC"}

@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 import {
   VERSION,
-  PuppetLark,
+  PuppetEngine,
 }                       from 'wechaty-puppet-engine'
 
 import assert from 'assert'
@@ -11,7 +11,7 @@ async function main () {
     throw new Error('version should be set before publishing')
   }
 
-  const puppet = new PuppetLark()
+  const puppet = new PuppetEngine()
   const version = puppet.version()
   assert(version, 'load version from puppet')
   // try {

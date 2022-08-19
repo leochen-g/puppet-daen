@@ -1,0 +1,1 @@
+{"version":3,"file":"message-miniprogram.d.ts","sourceRoot":"","sources":["../../../../../src/engine/messages/message-miniprogram.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,KAAK,MAAM,MAAM,gBAAgB,CAAA;AAC7C,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,wBAAwB,CAAA;AA0B5D,wBAAsB,8BAA8B,CAAE,UAAU,EAAE,cAAc,GAAG,OAAO,CAAC,MAAM,CAAC,QAAQ,CAAC,WAAW,CAAC,CAiBtH"}
