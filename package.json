@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-engine",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Puppet engine for Wechaty",
   "type": "module",
   "typings": "./dist/esm/src/mod.d.ts",
