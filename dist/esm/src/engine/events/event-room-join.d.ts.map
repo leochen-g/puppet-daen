@@ -1,1 +1,0 @@
-{"version":3,"file":"event-room-join.d.ts","sourceRoot":"","sources":["../../../../../src/engine/events/event-room-join.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,wBAAwB,CAAA;AAC5D,OAAO,KAAK,KAAK,MAAM,MAAM,gBAAgB,CAAA;AAE7C,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,YAAY,CAAA;iCA8BhB,OAAO,MAAM,WAAW,cAAc,KAAG,QAAQ,YAAY,CAAC;AAA5F,wBA2HC"}

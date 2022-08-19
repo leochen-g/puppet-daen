@@ -1,1 +1,0 @@
-{"version":3,"file":"event-room-invite.d.ts","sourceRoot":"","sources":["../../../../../src/engine/events/event-room-invite.ts"],"names":[],"mappings":"AAEA,OAAO,KAAK,KAAK,MAAM,MAAM,gBAAgB,CAAA;AAC7C,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,wBAAwB,CAAA;AAC5D,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,YAAY,CAAA;kCAOf,OAAO,MAAM,WAAW,cAAc,KAAG,QAAQ,YAAY,CAAC;AAA7F,wBAoDC"}

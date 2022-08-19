@@ -1,1 +1,0 @@
-{"version":3,"file":"event-message.d.ts","sourceRoot":"","sources":["../../../../../src/engine/events/event-message.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,KAAK,MAAM,MAAM,gBAAgB,CAAA;AAC7C,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,wBAAwB,CAAA;AAC5D,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,YAAY,CAAA;kCAEf,OAAO,MAAM,WAAW,cAAc,KAAG,QAAQ,YAAY,CAAC;AAA7F,wBAEC"}

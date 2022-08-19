@@ -1,1 +1,0 @@
-{"version":3,"file":"event-room-topic.d.ts","sourceRoot":"","sources":["../../../../../src/engine/events/event-room-topic.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,wBAAwB,CAAA;AAC5D,OAAO,KAAK,KAAK,MAAM,MAAM,gBAAgB,CAAA;AAE7C,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,YAAY,CAAA;iCAgBhB,OAAO,MAAM,WAAW,cAAc,KAAG,QAAQ,YAAY,CAAC;AAA5F,wBAqDC"}
