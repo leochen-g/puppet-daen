@@ -1,90 +1,125 @@
-import {
-  EventMessagePayload,
-  MessageType,
-  FileBox,
-}                           from 'wechaty-puppet'
-
-import { PuppetLark } from '../src/puppet-daen'
-
-const puppet = new PuppetLark({
-  larkServer: {
-    port: 1234,
-  },
+import { WechatyBuilder, log } from 'wechaty'
+import { FileBox } from 'file-box'
+import { PuppetEngine } from '../src/mod.js'
+const bot = WechatyBuilder.build({
+  name: 'wechat-dice-bot', // generate xxxx.memory-card.json and save login data for the next login
+  puppet: new PuppetEngine({
+    runLocal: false,
+    httpServer: 'http://10.10.10.15:8055',
+  }),
 })
-
-puppet.start().catch(async e => {
-  console.error('Bot start() fail:', e)
-  // await puppet.stop()
-  process.exit(-1)
-})
-
-puppet.on('message', onMessage)
-
-async function onMessage (payload: EventMessagePayload) {
-  const msgPayload = await puppet.messagePayload(payload.messageId)
-  // console.info(msgPayload)
-  if (msgPayload.type === MessageType.Image) {
-    const image = await puppet.messageImage(msgPayload.id)
-    await image.toFile('download.png', true)
-    const myfile = FileBox.fromFile('download.png')
-    await puppet.messageSendFile(msgPayload.fromId!, myfile).catch(console.error)
-  } else if (msgPayload.type === MessageType.Attachment) {
-    const file = await puppet.messageFile(msgPayload.id)
-    await file.toFile('download.pdf', true)
-    console.info('Download finished!')
-  } else if (/ding/i.test(msgPayload.text || '')) {
-    await puppet.messageSendText(msgPayload.id!, 'dong')
-  } else if (/获取企业所有成员/i.test(msgPayload.text || '')) {
-    const _contactList = await puppet.contactList().catch(console.error)
-    if (_contactList != null) {
-      for (const i in _contactList) {
-        const obj = await eval(_contactList[i])
-        console.info(obj.open_id) // email, mobile, open_id,
-        await puppet.messageSendText(msgPayload.id!, obj.open_id + ':' + obj.name)
-      }
-    }
-  } else if (/创建新的群/i.test(msgPayload.text || '')) {
-    const _contactList = await puppet.contactList().catch(console.error)
-    if (_contactList != null) {
-      const ids = []
-      for (const i in _contactList) {
-        const obj = await eval(_contactList[i])
-        console.info(obj.name) // email, mobile, open_id,
-        ids.push(obj.open_id)
-      }
-      await puppet.roomCreate(ids, 'testRoom')
-      console.info('Create room successfully!')
-    }
-  } else if (/获取群列表/i.test(msgPayload.text || '')) {
-    const roomList = await puppet.roomList().catch(console.error)
-    if (roomList != null) {
-      for (const i in roomList) {
-        const obj = await eval(roomList[i])
-        // console.info(obj.chat_id) //"avatar","chat_id","description","name","owner_open_id","owner_user_id"
-        await puppet.messageSendText(msgPayload.id!, obj.open_id + ':' + obj.name)
-      }
+// bot
+//   .use(WechatyWebPanelPlugin({apiKey: 'e05752bb8ec1038e221a63bd35165cdec8177d3a',
+//     apiSecret: 'd20f55ca1fc8b88f32313353ed8fcdc15fb7a279',}))
+bot.on('message', async (msg) => {
+  log.info('message', msg.text())
+  const contact = msg.talker()
+  const room = msg.room() // 是否为群消息
+  if (msg.text() === '图片') {
+    const file = FileBox.fromUrl('https://img.aibotk.com/aibotk/public/yq3wWdBL0BnJV4Z1_sh.jpeg')
+    log.info('in', file)
+    await contact.say(file)
+  } else if (msg.text() === '文字') {
+    await contact.say('你好')
+  } else if (msg.text() === '文件') {
+    const file = FileBox.fromUrl('https://transfer.sh/naRe6G/9a8d2830c0c548b70f24de5b0bf6e9fd_681899382309_v_1660206582323327.mp4')
+    await contact.say(file)
+  } else if (msg.text() === 'h5') {
+    const urlCard = new bot.UrlLink({
+      title: 'Hello World! 你好世界！',
+      description: 'This is description。描述可中文',
+      thumbnailUrl: 'https://img.aibotk.com/aibotk/public/yq3wWdBL0BnJV4Z1_sh.jpeg',
+      url: 'http://wechat.aibotk.com/material/file',
+    })
+    if (room) {
+      await room.say(urlCard)
     } else {
-      console.info('没有群聊')
+      await contact.say(urlCard)
     }
-  } else if (/删除成员测试/i.test(msgPayload.text || '')) {
-    await puppet.roomDel(msgPayload.id!, 'ou_7ebb5c46bb6792a456e5e6dc01f4a64f')
-  } else if (/修改群名/i.test(msgPayload.text || '')) {
-    const roomList = await puppet.roomList().catch(console.error)
-    if (roomList != null) {
-      for (const i in roomList) {
-        const obj = await eval(roomList[i])
-        // console.info(obj.chat_id) //"avatar","chat_id","description","name","owner_open_id","owner_user_id"
-        await puppet.messageSendText(msgPayload.id!, obj.open_id + ':' + obj.name)
-        await puppet.roomTopic(obj.chat_id, '新群名')
-      }
+  } else if (msg.text() === '小程序') {
+    const mini = new bot.MiniProgram({
+      description: '美团打车',
+      title: '美团打车',
+      pagePath: 'pages/index/index2.html?showCarKnowledge=false&source=xcx_sy2021',
+      thumbUrl: 'https://img.aibotk.com/aibotk/public/yq3wWdBL0BnJV4Z1_meiri.jpeg',
+      username: 'gh_b86a530798ae',
+    })
+    if (room) {
+      await room.say(mini)
+    } else {
+      await contact.say(mini)
     }
-  } else if (/contactSelfQRCode/i.test(msgPayload.text || '')) {
-    console.info(await puppet.contactSelfQRCode())
-  } else {
-    console.info('Nothing')
+  } else if (msg.text() === '音乐') {
+    const music = await bot.Post.builder()
+      .add('music')
+      .add('幸福了 然后呢')
+      .add('A-Lin')
+      .add('wx5aa333606550dfd5')
+      .add('http://isure6.stream.qqmusic.qq.com/C400002QTAVi3WShQg.m4a?fromtag=30006&guid=2000000006&uin=0&vkey=5F8F57E2B07E3D952EB4FAAE0D2A965CBD055BA8D822EAB3D9F41871F5EAB464D68095C572917296B9934F5DE6722A52020E562793E5921A')
+      .add('http://isure6.stream.qqmusic.qq.com/C400002QTAVi3WShQg.m4a?fromtag=30006&guid=2000000006&uin=0&vkey=5F8F57E2B07E3D952EB4FAAE0D2A965CBD055BA8D822EAB3D9F41871F5EAB464D68095C572917296B9934F5DE6722A52020E562793E5921A')
+      .add('https://img.aibotk.com/aibotk/public/yq3wWdBL0BnJV4Z1_WechatIMG3550.jpeg')
+      .build()
+    if (room) {
+      await room.say(music)
+    } else {
+      await contact.say(music)
+    }
+  } else if (msg.text() === '进群') {
+    const room = await bot.Room.find({ topic: '来说a' })
+    if (room) {
+      await room.add(contact)
+    }
   }
+  log.info('msg.type()', msg.type())
+  if (msg.type() === 6 || msg.type() === 1) {
+    const res = await msg.toFileBox()
+    log.info('res', res)
+    await res.toFile('./' + res.name)
+  }
+  if (msg.type() === 11) {
+    // @ts-ignore
+    const money = msg.money
+    // @ts-ignore
+    const transferId =  msg.transferid
+    // @ts-ignore
+    const desc =  msg.memo
+    // @ts-ignore
+    const msgType = msg.msgSource
+    log.info('msgType', msgType)
+    log.info(`收到转账:${money}\n转账id:${transferId}\n备注：${desc}`)
+    const music = await bot.Post.builder()
+      .add('transfer')
+      .add(transferId)
+      .build()
+    if (room) {
+      await room.say(music)
+    } else {
+      await contact.say(music)
+    }
+  }
+})
+bot.on('friendship', async (friendship) => {
+  const name = friendship.contact().name()
+  const hello = friendship.hello()
+  const logMsg = name + '，发送了好友请求'
+  log.info(logMsg, hello)
+  log.info('type', friendship.type())
+  await friendship.accept()
+})
+bot.on('room-join', async (room, inviteeList, inviter) => {
+  const nameList = inviteeList.map((c) => c.name()).join(',')
+  const roomName = await room.topic()
+  log.info(`群名： ${roomName} ，加入新成员： ${nameList}, 邀请人： ${inviter}`)
+  await room.say('欢迎进群', ...inviteeList)
+})
+bot.on('room-leave', async (room, leaverList, remover) => {
+  const nameList = leaverList.map((c) => c.name()).join(',')
+  log.info(`Room ${await room.topic()} lost member ${nameList}, the remover is: ${remover}`)
+})
 
-  process.on('unhandledRejection', (reason, p) => {
-    console.info('Unhandled Rejection at: Promise', p, 'reason:', reason)
-  })
-}
+bot.on('room-topic', (room, newTopic, oldTopic) => {
+  log.info('room', room)
+  log.info(`【${oldTopic}】群名更新为：${newTopic}`)
+})
+bot.start()
+  .catch((e) => console.error(e))
