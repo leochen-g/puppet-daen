@@ -26,8 +26,8 @@ wechaty-puppet-engine is a local puppet engine for Wechaty:
 
 ## REFERENCE
 
-- [API 使用文档 (TypeScript/JavaScript)](https://github.com/leochen-g/wechaty-puppet-engine/wiki/API-%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3-(TypeScript-JavaScript))
-- [常见问题列表](https://github.com/leochen-g/wechaty-puppet-engine/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E5%88%97%E8%A1%A8)
+- [API 使用文档 (TypeScript/JavaScript)](https://github.com/leochen-g/puppet-engine/wiki/Getting-Started-with-TypeScript-Javascript)
+- [常见问题列表](https://github.com/leochen-g/puppet-engine/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E5%88%97%E8%A1%A8)
 
 ## PUPPET COMPARISON
 
@@ -102,6 +102,9 @@ Daen-client-ts is default client.
 2. Go to the open source project [DaenWxHook](https://gitee.com/daenmax/pc-wechat-hook-http-api/tree/master/DaenWxHook) to download dll and dll injector or use [releases](https://github.com/leochen-g/puppet-engine/releases) file.
 
 ## HISTORY
+
+v1.0.1 (Aug 22, 2022)
+update README
 
 v1.0.1 (Aug 19, 2022)
 Initial version
