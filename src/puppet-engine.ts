@@ -49,9 +49,6 @@ class PuppetEngine extends PUPPET.Puppet {
   private _heartBeatTimer?: ReturnType<typeof setTimeout>;
   public static override readonly  VERSION = VERSION
 
-  app: any
-  server: any
-
   constructor (public override options: PuppetEngineOptions = {} as PuppetEngineOptions) {
     super(options)
     if (!this.options.engine) {
@@ -69,7 +66,7 @@ class PuppetEngine extends PUPPET.Puppet {
       }
     }
     if (!this.options.httpServer) {
-      const httpServer = process.env['WECHATY_PUPPET_ENGINE_HTTPSERVER'] || 'http://127.0.0.1:8055/DaenWxHook/client/'
+      const httpServer = process.env['WECHATY_PUPPET_ENGINE_HTTPSERVER'] || 'http://127.0.0.1:8055'
       if (httpServer) {
         this.options.httpServer = httpServer
       }
@@ -82,15 +79,6 @@ class PuppetEngine extends PUPPET.Puppet {
 
   override async onStart (): Promise<void> {
     log.verbose(PRE, 'onStart()')
-    // this.app = express()
-    // this.app.use(bodyParser.json({ limit: '200mb' }))
-    // this.app.use(bodyParser.urlencoded({ extended: true }))
-    // this.server = http.createServer(this.app)
-    //
-    // const _port = this.options.port
-    // this.server.listen(_port, async () => {
-    //   log.info(PRE, `Server is running on ${_port}`)
-    // })
     await this._startClient()
   }
 

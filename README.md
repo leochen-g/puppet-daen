@@ -98,8 +98,8 @@ This project is a puppet engine. So it can adapt to multiple clients.At present,
 
 Daen-client-ts is default client.
 
-1. You need to download the [WeChatSetup-v3.6.0.18.exe](https://pan.quark.cn/s/eee03fdec56e#/list/share)
-2. Go to the open source project [DaenWxHook](https://gitee.com/daenmax/pc-wechat-hook-http-api/tree/master/DaenWxHook) to download dll and dll injector.
+1. You need to download the [WeChatSetup-v3.6.0.18.exe](https://github.com/leochen-g/puppet-engine/releases)
+2. Go to the open source project [DaenWxHook](https://gitee.com/daenmax/pc-wechat-hook-http-api/tree/master/DaenWxHook) to download dll and dll injector or use [releases](https://github.com/leochen-g/puppet-engine/releases) file.
 
 ## HISTORY
 

@@ -64,3 +64,5 @@ dist
 .DS_Store
 t/
 t.*
+.nyc_output/*
+.nyc_output

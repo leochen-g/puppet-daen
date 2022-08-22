@@ -1,6 +1,7 @@
 import { WechatyBuilder, log } from 'wechaty'
 import { FileBox } from 'file-box'
 import { PuppetEngine } from '../src/mod.js'
+
 const bot = WechatyBuilder.build({
   name: 'wechat-dice-bot', // generate xxxx.memory-card.json and save login data for the next login
   puppet: new PuppetEngine({
@@ -8,9 +9,7 @@ const bot = WechatyBuilder.build({
     httpServer: 'http://10.10.10.15:8055',
   }),
 })
-// bot
-//   .use(WechatyWebPanelPlugin({apiKey: 'e05752bb8ec1038e221a63bd35165cdec8177d3a',
-//     apiSecret: 'd20f55ca1fc8b88f32313353ed8fcdc15fb7a279',}))
+
 bot.on('message', async (msg) => {
   log.info('message', msg.text())
   const contact = msg.talker()
@@ -76,6 +75,7 @@ bot.on('message', async (msg) => {
     log.info('res', res)
     await res.toFile('./' + res.name)
   }
+  // 转账确认
   if (msg.type() === 11) {
     // @ts-ignore
     const money = msg.money
@@ -121,5 +121,6 @@ bot.on('room-topic', (room, newTopic, oldTopic) => {
   log.info('room', room)
   log.info(`【${oldTopic}】群名更新为：${newTopic}`)
 })
+
 bot.start()
   .catch((e) => console.error(e))
