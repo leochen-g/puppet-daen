@@ -173,7 +173,7 @@ class PuppetEngine extends PUPPET.Puppet {
           log.error('set download all day', e)
         })
       }, 3000)
-      setTimeout(()=> {
+      setTimeout(() => {
         this.emit('ready', {
           data: 'ready',
         })

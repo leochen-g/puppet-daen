@@ -282,14 +282,14 @@ class Client extends EventEmitter {
       const { type, data, wxid } = req.body
       // response according to message type
       log.verbose(PRE, `on event:${JSON.stringify(data)}`)
-
+      let robotInfo: ContactPayload
       switch (type) {
         case 'D0001':
           this.emit('hook', { errorCode: 0, errorMessage: 'success' })
           break
         case 'D0002':
           log.verbose(PRE, 'login event')
-          const robotInfo: ContactPayload = {
+          robotInfo = {
             avatar: data.avatarUrl || '',
             city: data.city || '',
             country: data.country || '',
@@ -301,7 +301,7 @@ class Client extends EventEmitter {
             device: data.device || '',
             phone: data.phone || '',
             qq: data.qq || '',
-            email: data.email || ''
+            email: data.email || '',
           }
           this.emit('login', { errorCode: 0, errorMessage: 'success', name: data.nick, wxid, robotInfo })
           break
