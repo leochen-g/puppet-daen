@@ -43,10 +43,10 @@ export type PuppetEngineOptions = PUPPET.PuppetOptions & {
 
 class PuppetEngine extends PUPPET.Puppet {
 
-  private _cacheMgr?: CacheManager;
-  private _client?: Client;
-  private _printVersion: boolean = true;
-  private _heartBeatTimer?: ReturnType<typeof setTimeout>;
+  private _cacheMgr?: CacheManager
+  private _client?: Client
+  private _printVersion: boolean = true
+  private _heartBeatTimer?: ReturnType<typeof setTimeout>
   public static override readonly  VERSION = VERSION
 
   constructor (public override options: PuppetEngineOptions = {} as PuppetEngineOptions) {
@@ -447,7 +447,7 @@ class PuppetEngine extends PUPPET.Puppet {
     const res = await this._client?.searchStranger(id)
     const searchId = `${SEARCH_CONTACT_PREFIX}${id}`
     if (res) {
-      await this._cacheMgr!.setContactSearch(searchId, { ...res, scene: scene })
+      await this._cacheMgr!.setContactSearch(searchId, { ...res, scene })
     }
     return searchId
   }
@@ -1064,7 +1064,7 @@ class PuppetEngine extends PUPPET.Puppet {
           if (removedMemberIdList.length) {
             removedMemberIdList.forEach((removeeId) => {
               const roomLeave: PUPPET.payloads.EventRoomLeave = {
-                removeeIdList: [removeeId],
+                removeeIdList: [ removeeId ],
                 removerId: removeeId,
                 roomId: contact.wxid,
                 timestamp: Math.floor(Date.now() / 1000),

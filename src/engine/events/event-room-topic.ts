@@ -56,7 +56,7 @@ export default async (puppet: PUPPET.Puppet, message: MessagePayload): Promise<E
     })
   }
 
-  const topicChange = await executeRunners<TopicChange>([youChangeTopic, otherChangeTopic])
+  const topicChange = await executeRunners<TopicChange>([ youChangeTopic, otherChangeTopic ])
   if (topicChange) {
     const room = await puppet.roomPayload(roomId)
     const oldTopic = room.topic

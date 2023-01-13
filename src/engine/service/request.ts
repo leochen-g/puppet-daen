@@ -239,9 +239,9 @@ export interface BaseEvent {
 
 class Client extends EventEmitter {
 
-  private readonly options: PuppetEngineOptions;
-  app: any;
-  server: any;
+  private readonly options: PuppetEngineOptions
+  app: any
+  server: any
 
   // @ts-ignore
   override emit(event: 'hook', detail: BaseEvent): boolean;
@@ -460,7 +460,7 @@ class Client extends EventEmitter {
     const list = await this.postData({
       type: 'Q0005',
       data: {
-        type: type,
+        type,
       },
     })
     const contactList: ContactPayload[] = list.map((item:any) => {
@@ -481,7 +481,7 @@ class Client extends EventEmitter {
     const list: ContactPayload[] = await this.postData({
       type: 'Q0006',
       data: {
-        type: type,
+        type,
       },
     })
     const groupList: ContactPayload[] = list.map((item:any) => {
@@ -516,7 +516,7 @@ class Client extends EventEmitter {
     const list: ContactPayload[] = await this.postData({
       type: 'Q0007',
       data: {
-        type: type,
+        type,
       },
     })
     return list
@@ -534,7 +534,7 @@ class Client extends EventEmitter {
       type: 'Q0001',
       data: {
         wxid: contactId,
-        msg: msg,
+        msg,
       },
     })
 
@@ -551,8 +551,8 @@ class Client extends EventEmitter {
       type: 'Q0009',
       data: {
         wxid: contactId,
-        title: title,
-        dataList: dataList,
+        title,
+        dataList,
       },
     })
 
@@ -566,7 +566,7 @@ class Client extends EventEmitter {
   public async sendLocalImg (contactId: string, path: string): Promise<void> {
     await this.postData({
       data: {
-        path: path,
+        path,
         wxid: contactId,
       },
       type: 'Q0010',
@@ -584,7 +584,7 @@ class Client extends EventEmitter {
       type: 'Q0011',
       data: {
         wxid: contactId,
-        path: path,
+        path,
       },
     })
 
@@ -611,11 +611,11 @@ class Client extends EventEmitter {
       type: 'Q0012',
       data: {
         wxid: contactId,
-        title: title,
-        content: content,
-        jumpUrl: jumpUrl,
-        app: app,
-        path: path,
+        title,
+        content,
+        jumpUrl,
+        app,
+        path,
       },
     })
 
@@ -642,11 +642,11 @@ class Client extends EventEmitter {
       type: 'Q0013',
       data: {
         wxid: contactId,
-        title: title,
-        content: content,
+        title,
+        content,
         jumpPath: jumpUrl,
-        gh: gh,
-        path: path,
+        gh,
+        path,
       },
     })
 
@@ -676,12 +676,12 @@ class Client extends EventEmitter {
       type: 'Q0014',
       data: {
         wxid: contactId,
-        name: name,
-        author: author,
-        app: app,
-        jumpUrl: jumpUrl,
-        musicUrl: musicUrl,
-        imageUrl: imageUrl,
+        name,
+        author,
+        app,
+        jumpUrl,
+        musicUrl,
+        imageUrl,
       },
     })
 
@@ -700,7 +700,7 @@ class Client extends EventEmitter {
       type: 'Q0001',
       data: {
         wxid: contactId,
-        xml: xml,
+        xml,
       },
     })
 
@@ -716,7 +716,7 @@ class Client extends EventEmitter {
       type: 'Q0016',
       data: {
         wxid: contactId,
-        transferid: transferid,
+        transferid,
       },
     })
 
@@ -733,8 +733,8 @@ class Client extends EventEmitter {
       type: 'Q0017',
       data: {
         scene: scene && scene.toString(),
-        v3: v3,
-        v4: v4,
+        v3,
+        v4,
       },
     })
 
@@ -756,10 +756,10 @@ class Client extends EventEmitter {
     await this.postData({
       type: 'Q0018',
       data: {
-        scene: scene,
-        v3: v3,
-        content: content,
-        type: type,
+        scene,
+        v3,
+        content,
+        type,
       },
     })
 
@@ -779,9 +779,9 @@ class Client extends EventEmitter {
     await this.postData({
       type: 'Q0019',
       data: {
-        scene: scene,
-        wxid: wxid,
-        content: content,
+        scene,
+        wxid,
+        content,
       },
     })
 
@@ -821,7 +821,7 @@ class Client extends EventEmitter {
       data: {
         wxid: groupId,
         objWxid: contactId,
-        type: type,
+        type,
       },
     })
 
@@ -851,7 +851,7 @@ class Client extends EventEmitter {
       type: 'Q0023',
       data: {
         wxid: contactId,
-        remark: remark,
+        remark,
       },
     })
 

@@ -44,6 +44,7 @@ typings/
 
 # Optional eslint cache
 .eslintcache
+.nyc_output
 
 # Optional REPL history
 .node_repl_history

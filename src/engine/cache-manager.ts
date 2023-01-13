@@ -14,19 +14,19 @@ export type RoomMemberMap = { [contactId: string]: ContactPayload };
 
 export class CacheManager {
 
-  private readonly _userName: string;
+  private readonly _userName: string
 
-  private _messageCache?: LRU<string, MessagePayload>; // because message count may be massive, so we just keep them in memory with LRU and with limited capacity
-  private _messageRevokeCache?: LRU<string, MessageRevokeInfo>;
-  private _contactCache?: FlashStore<string, ContactPayload>;
-  private _contactSearchCache?: LRU<string, ContactPayload>;
-  private _contactStrangerAliasCache?: FlashStore<string, string>; // set alias before add contact
-  private _roomCache?: FlashStore<string, ContactPayload>;
-  private _roomMemberCache?: FlashStore<string, RoomMemberMap>;
-  private _roomInvitationCache?: FlashStore<string, PUPPET.payloads.RoomInvitation>;
-  private _friendshipCache?: FlashStore<string, PUPPET.payloads.FriendshipReceive>;
+  private _messageCache?: LRU<string, MessagePayload> // because message count may be massive, so we just keep them in memory with LRU and with limited capacity
+  private _messageRevokeCache?: LRU<string, MessageRevokeInfo>
+  private _contactCache?: FlashStore<string, ContactPayload>
+  private _contactSearchCache?: LRU<string, ContactPayload>
+  private _contactStrangerAliasCache?: FlashStore<string, string> // set alias before add contact
+  private _roomCache?: FlashStore<string, ContactPayload>
+  private _roomMemberCache?: FlashStore<string, RoomMemberMap>
+  private _roomInvitationCache?: FlashStore<string, PUPPET.payloads.RoomInvitation>
+  private _friendshipCache?: FlashStore<string, PUPPET.payloads.FriendshipReceive>
 
-  private _labelList?: Label[];
+  private _labelList?: Label[]
 
   constructor (userName: string) {
     this._userName = userName
