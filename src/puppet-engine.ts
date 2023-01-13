@@ -93,8 +93,9 @@ class PuppetEngine extends PUPPET.Puppet {
       this._client.on('hook', () => {
         log.info(PRE, 'hook success')
       })
-      this._client.on('login', this.wrapAsync(async ({ wxid, name }) => {
+      this._client.on('login', this.wrapAsync(async ({ wxid, name, robotInfo }) => {
         log.info(PRE, `login success: ${name}`)
+        await this._cacheMgr!.setContact(wxid, robotInfo)
         await this.login(wxid)
       }))
       this._client.on('message', this.wrapAsync(async (message:MessagePayload) => {
@@ -172,9 +173,11 @@ class PuppetEngine extends PUPPET.Puppet {
           log.error('set download all day', e)
         })
       }, 3000)
-      this.emit('ready', {
-        data: 'ready',
-      })
+      setTimeout(()=> {
+        this.emit('ready', {
+          data: 'ready',
+        })
+      }, 10000)
     } catch (e) {
       log.error('ready error', e)
     }
@@ -282,7 +285,7 @@ class PuppetEngine extends PUPPET.Puppet {
       return PUPPET.throwUnsupportedError('set avatar is not unsupported')
     }
     const contact = await this.contactRawPayload(contactId)
-    if (contact) {
+    if (contact && contact.avatar) {
       return FileBox.fromUrl(contact.avatar, { name: `avatar-${contactId}.jpg` })
     }
   }

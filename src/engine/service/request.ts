@@ -112,6 +112,10 @@ export interface ContactPayload {
    * 加好友场景 来源，1=qq 3=微信号 6=单向添加 10和13=通讯录 14=群聊 15=手机号 17=名片 30=扫一扫
    */
   scene?: string
+  device?: string
+  qq?: string
+  phone?: string
+  email?: string
 }
 
 /**
@@ -229,7 +233,8 @@ export interface BaseEvent {
   errorCode: number;
   errorMessage: string;
   wxid?: string;
-  name?: string
+  name?: string,
+  robotInfo?: ContactPayload
 }
 
 class Client extends EventEmitter {
@@ -276,18 +281,32 @@ class Client extends EventEmitter {
     this.app.post('/wechat/', async (req: any, res: any) => {
       const { type, data, wxid } = req.body
       // response according to message type
-      log.info(PRE, `on event:${JSON.stringify(data)}`)
+      log.verbose(PRE, `on event:${JSON.stringify(data)}`)
 
       switch (type) {
         case 'D0001':
           this.emit('hook', { errorCode: 0, errorMessage: 'success' })
           break
         case 'D0002':
-          log.info(PRE, 'login event')
-          this.emit('login', { errorCode: 0, errorMessage: 'success', name: data.nick, wxid })
+          log.verbose(PRE, 'login event')
+          const robotInfo: ContactPayload = {
+            avatar: data.avatarUrl || '',
+            city: data.city || '',
+            country: data.country || '',
+            province: data.province || '',
+            sex: data.sex || '',
+            name: data.nick || '',
+            wxid: data.wxid || '',
+            wxNum: data.wxNum || '',
+            device: data.device || '',
+            phone: data.phone || '',
+            qq: data.qq || '',
+            email: data.email || ''
+          }
+          this.emit('login', { errorCode: 0, errorMessage: 'success', name: data.nick, wxid, robotInfo })
           break
         case 'D0003': {
-          log.info(PRE, 'recive message')
+          log.verbose(PRE, 'recive message')
           const msg: MessagePayload = {
             ...data,
             text: data.msg,
@@ -299,7 +318,7 @@ class Client extends EventEmitter {
           break
         }
         case 'D0004': {
-          log.info(PRE, 'transfer message')
+          log.verbose(PRE, 'transfer message')
           const transferMsg: MessagePayload = {
             ...data,
             id: cuid(),
@@ -313,10 +332,10 @@ class Client extends EventEmitter {
           break
         }
         case 'D0005':
-          log.info(PRE, 'recall message')
+          log.verbose(PRE, 'recall message')
           break
         case 'D0006': {
-          log.info(PRE, 'friend request')
+          log.verbose(PRE, 'friend request')
           const friendShip = {
             ...data,
             contactId: data.wxid,

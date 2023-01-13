@@ -44,7 +44,7 @@ export const roomParser: MessageParser = async (engineMessage: MessagePayload, r
     /**
      *
      */
-    if (typeof engineMessage.atWxidList === 'object') {
+    if (!Array.isArray(engineMessage.atWxidList)) {
       engineMessage.atWxidList = []
     }
     if ((engineMessage.atWxidList && engineMessage.atWxidList.length === 1 && engineMessage.atWxidList[0] === 'announcement@all') || engineMessage.msg.includes('@所有人 ')) {
