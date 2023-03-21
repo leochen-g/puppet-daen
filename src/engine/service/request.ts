@@ -369,7 +369,7 @@ class Client extends EventEmitter {
         method: 'POST',
         url: this.options.httpServer + '/DaenWxHook/client/',
       })
-      const result = typeof res.data === 'string' ? JSON.parse(res.data.replaceAll('\x07', '').replaceAll('\x1F','')) : res.data
+      const result = typeof res.data === 'string' ? JSON.parse(res.data.replaceAll('\x07', '').replaceAll('\x1F', '')) : res.data
       if (parseInt(result.code) === 200) {
         return Array.isArray(result.result) ? result.result : { ...result.result, robotId: result.wxid }
       } else {
@@ -445,7 +445,7 @@ class Client extends EventEmitter {
         wxid: contactId,
       },
     })
-    if(contact) {
+    if (contact) {
       return {
         ...contact,
         name: contact.nick,
