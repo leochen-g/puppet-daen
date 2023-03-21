@@ -369,7 +369,7 @@ class Client extends EventEmitter {
         method: 'POST',
         url: this.options.httpServer + '/DaenWxHook/client/',
       })
-      const result = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
+      const result = typeof res.data === 'string' ? JSON.parse(res.data.replaceAll('\x07', '').replaceAll('\x1F','')) : res.data
       if (parseInt(result.code) === 200) {
         return Array.isArray(result.result) ? result.result : { ...result.result, robotId: result.wxid }
       } else {
@@ -377,7 +377,7 @@ class Client extends EventEmitter {
         return { code: Number(result.code), errorMsg: result.msg, result: result.result }
       }
     } catch (e) {
-      log.error('post error', e)
+      log.error('post error：数据解析错误', e)
     }
   }
 
@@ -438,18 +438,21 @@ class Client extends EventEmitter {
    * 查询对象信息
    * @param contactId
    */
-  public async searchContact (contactId: string): Promise<ContactPayload> {
+  public async searchContact (contactId: string): Promise<ContactPayload | undefined> {
     const contact = await this.postData({
       type: 'Q0004',
       data: {
         wxid: contactId,
       },
     })
-    return {
-      ...contact,
-      name: contact.nick,
-      avatar: contact.avatarMaxUrl | contact.avatarMinUrl,
+    if(contact) {
+      return {
+        ...contact,
+        name: contact.nick,
+        avatar: contact.avatarMaxUrl | contact.avatarMinUrl,
+      }
     }
+    return undefined
   }
 
   /**
