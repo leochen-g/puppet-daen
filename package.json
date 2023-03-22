@@ -15,8 +15,7 @@
     "wechaty-puppet": ">=1.20"
   },
   "scripts": {
-    "clean": "shx rm -fr dist/*",
-    "dist": "npm-run-all clean build dist:commonjs",
+    "dist": "npm-run-all build dist:commonjs",
     "build": "tsc && tsc -p tsconfig.cjs.json",
     "dist:commonjs": "jq -n \"{ type: \\\"commonjs\\\" }\" > dist/cjs/package.json",
     "lint": "npm-run-all lint:es lint:ts lint:md",
