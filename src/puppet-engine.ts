@@ -95,8 +95,8 @@ class PuppetEngine extends PUPPET.Puppet {
       })
       this._client.on('login', this.wrapAsync(async ({ wxid, name, robotInfo }) => {
         log.info(PRE, `login success: ${name}`)
-        await this._cacheMgr!.setContact(wxid, robotInfo)
         await this.login(wxid)
+        await this._cacheMgr!.setContact(wxid, robotInfo)
       }))
       this._client.on('message', this.wrapAsync(async (message:MessagePayload) => {
         await this._onPushMessage(message)

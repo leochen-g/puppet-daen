@@ -369,7 +369,7 @@ class Client extends EventEmitter {
         method: 'POST',
         url: this.options.httpServer + '/DaenWxHook/client/',
       })
-      const result = typeof res.data === 'string' ? JSON.parse(res.data.replaceAll('\x07', '').replaceAll('\x1F', '')) : res.data
+      const result = typeof res.data === 'string' ? JSON.parse(res.data.replaceAll('\x07', '').replaceAll('\x1F', '').replaceAll(/[^\x00-\x7F]/g, '')) : res.data
       if (parseInt(result.code) === 200) {
         return Array.isArray(result.result) ? result.result : { ...result.result, robotId: result.wxid }
       } else {
@@ -445,7 +445,7 @@ class Client extends EventEmitter {
         wxid: contactId,
       },
     })
-    if (contact) {
+    if (contact && contact.wxid) {
       return {
         ...contact,
         name: contact.nick,
@@ -465,8 +465,8 @@ class Client extends EventEmitter {
       data: {
         type,
       },
-    })
-    const contactList: ContactPayload[] = list.map((item:any) => {
+    }) || []
+    const contactList: ContactPayload[] = list.filter((item:any) => item.wxid).map((item:any) => {
       return {
         ...item,
         name: item.nick,
@@ -486,8 +486,8 @@ class Client extends EventEmitter {
       data: {
         type,
       },
-    })
-    const groupList: ContactPayload[] = list.map((item:any) => {
+    }) || []
+    const groupList: ContactPayload[] = list.filter((item:any) => item.wxid).map((item:any) => {
       return {
         ...item,
         name: item.nick,
@@ -507,8 +507,8 @@ class Client extends EventEmitter {
       data: {
         wxid: roomId,
       },
-    })
-    return list
+    }) || []
+    return list.filter((item:any) => item.wxid)
   }
 
   /**
@@ -521,8 +521,8 @@ class Client extends EventEmitter {
       data: {
         type,
       },
-    })
-    return list
+    }) || []
+    return list.filter((item:any) => item.wxid)
   }
 
   /**
