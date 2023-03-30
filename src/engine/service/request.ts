@@ -338,6 +338,7 @@ class Client extends EventEmitter {
           log.verbose(PRE, 'friend request')
           const friendShip = {
             ...data,
+            remark: data.remark || '',
             contactId: data.wxid,
             hello: data.content,
             id: cuid(),
