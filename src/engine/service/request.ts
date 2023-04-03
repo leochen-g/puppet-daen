@@ -237,6 +237,11 @@ export interface BaseEvent {
   robotInfo?: ContactPayload
 }
 
+export interface ContactEvent {
+  friendShip: MessagePayload,
+  contactInfo: ContactPayload
+}
+
 class Client extends EventEmitter {
 
   private readonly options: PuppetEngineOptions
@@ -247,7 +252,7 @@ class Client extends EventEmitter {
   override emit(event: 'hook', detail: BaseEvent): boolean;
   override emit(event: 'login', detail: BaseEvent): boolean;
   override emit(event: 'message', messageList: MessagePayload): boolean;
-  override emit(event: 'contact', messageList: MessagePayload): boolean;
+  override emit(event: 'contact', detail: ContactEvent): boolean;
 
   override emit (event: ClientEvent, ...args: any[]): boolean {
     return super.emit(event, ...args)
@@ -347,7 +352,22 @@ class Client extends EventEmitter {
             timestamp: Number(data.timestamp),
             type: 2,
           }
-          this.emit('contact', friendShip)
+          const contactInfo = {
+            avatar: data.avatarMaxUrl || data.avatarMinUrl || '',
+            city: data.city || '',
+            country: data.country || '',
+            province: data.province || '',
+            sex: data.sex || '',
+            name: data.nick || '',
+            wxid: data.wxid || '',
+            wxNum: data.wxNum || '',
+            device: '',
+            phone: '',
+            qq: '',
+            email: '',
+            sign: data.sign || ''
+          }
+          this.emit('contact', {friendShip, contactInfo})
           break
         }
       }

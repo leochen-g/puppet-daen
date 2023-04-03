@@ -101,8 +101,9 @@ class PuppetEngine extends PUPPET.Puppet {
       this._client.on('message', this.wrapAsync(async (message:MessagePayload) => {
         await this._onPushMessage(message)
       }))
-      this._client.on('contact', this.wrapAsync(async (friendShip:PUPPET.payloads.FriendshipReceive) => {
+      this._client.on('contact', this.wrapAsync(async ({ friendShip, contactInfo}:{ friendShip:PUPPET.payloads.FriendshipReceive, contactInfo: ContactPayload }) => {
         await this._friendRequestEvent(friendShip)
+        await this._cacheMgr!.setContact(contactInfo.wxid, contactInfo)
       }))
     }
     addRunningPuppet(this)
@@ -1142,6 +1143,12 @@ class PuppetEngine extends PUPPET.Puppet {
           messageId,
         })
         break
+      case EventType.Friendship: {
+        this.emit('friendship', {
+          friendshipId: message.id,
+        })
+        break
+      }
       case EventType.RoomInvite: {
         const roomInvite: PUPPET.payloads.RoomInvitation = event.payload
         await this._cacheMgr!.setRoomInvitation(messageId, roomInvite)
