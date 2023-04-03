@@ -101,7 +101,7 @@ class PuppetEngine extends PUPPET.Puppet {
       this._client.on('message', this.wrapAsync(async (message:MessagePayload) => {
         await this._onPushMessage(message)
       }))
-      this._client.on('contact', this.wrapAsync(async ({ friendShip, contactInfo}:{ friendShip:PUPPET.payloads.FriendshipReceive, contactInfo: ContactPayload }) => {
+      this._client.on('contact', this.wrapAsync(async ({ friendShip, contactInfo }:{ friendShip:PUPPET.payloads.FriendshipReceive, contactInfo: ContactPayload }) => {
         await this._friendRequestEvent(friendShip)
         await this._cacheMgr!.setContact(contactInfo.wxid, contactInfo)
       }))

@@ -365,9 +365,9 @@ class Client extends EventEmitter {
             phone: '',
             qq: '',
             email: '',
-            sign: data.sign || ''
+            sign: data.sign || '',
           }
-          this.emit('contact', {friendShip, contactInfo})
+          this.emit('contact', { friendShip, contactInfo })
           break
         }
       }
