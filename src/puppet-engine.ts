@@ -1144,8 +1144,10 @@ class PuppetEngine extends PUPPET.Puppet {
         })
         break
       case EventType.Friendship: {
+        await this._cacheMgr?.setFriendshipRawPayload(messageId, event.payload);
+
         this.emit('friendship', {
-          friendshipId: message.id,
+          friendshipId: messageId,
         })
         break
       }
