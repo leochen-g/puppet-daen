@@ -10,7 +10,7 @@ export function engineContactToWechaty (contact: ContactPayload): PUPPET.payload
     gender: contact.sex, // 性别
     id: contact.wxid, // wxid
     name: contact.name, // 昵称
-    friend: true,
+    friend: !!contact.isFriend, // 是否是好友
     phone: [],
     province: contact.province,
     signature: contact.sign, // 签名

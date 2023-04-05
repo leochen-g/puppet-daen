@@ -998,7 +998,36 @@ class PuppetEngine extends PUPPET.Puppet {
 
     return ret
   }
+  /****************************************************************************
+   * extra methods section
+   ***************************************************************************/
 
+  /**
+   * CAUTION: For edge case usage only!
+   * Sync contact is a time-consuming action, may last for minutes especially when you have massive contacts.
+   * You MUST understand what exactly you are doing.
+   */
+  async syncContact () {
+    if (this.state.active() !== true) {
+      throw new Error('Can not sync contact before login')
+    }
+    const contactList: ContactPayload[] = await this._client?.getContactList('2') || []
+
+    for (const contact of contactList) {
+      await this._onPushContact(contact)
+    }
+  }
+
+  async syncRoom () {
+    if (this.state.active() !== true) {
+      throw new Error('Can not sync contact before login')
+    }
+    const groupList: ContactPayload[] = await this._client?.getGroupList('2') || []
+
+    for (const room of groupList) {
+      await this._onPushContact(room)
+    }
+  }
   /****************************************************************************
    * private section
    ***************************************************************************/
@@ -1144,7 +1173,7 @@ class PuppetEngine extends PUPPET.Puppet {
         })
         break
       case EventType.Friendship: {
-        await this._cacheMgr?.setFriendshipRawPayload(messageId, event.payload);
+        await this._cacheMgr?.setFriendshipRawPayload(messageId, event.payload)
 
         this.emit('friendship', {
           friendshipId: messageId,

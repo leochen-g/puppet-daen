@@ -480,7 +480,7 @@ class Client extends EventEmitter {
    * 获取好友列表
    * @param type 1=从缓存中获取，2=重新遍历二叉树并刷新缓存
    */
-  public async getContactList (type: string = '1'): Promise<ContactPayload[]> {
+  public async getContactList (type: string = '2'): Promise<ContactPayload[]> {
     const list = await this.postData({
       type: 'Q0005',
       data: {
@@ -490,6 +490,7 @@ class Client extends EventEmitter {
     const contactList: ContactPayload[] = list.filter((item:any) => item.wxid).map((item:any) => {
       return {
         ...item,
+        isFriend: true,
         name: item.nick,
         avatar: item.avatarMaxUrl || item.avatarMinUrl,
       }
@@ -501,7 +502,7 @@ class Client extends EventEmitter {
    * 获取群聊列表
    * @param type 1=从缓存中获取，2=重新遍历二叉树并刷新缓存
    */
-  public async getGroupList (type: string = '1'): Promise<ContactPayload[]> {
+  public async getGroupList (type: string = '2'): Promise<ContactPayload[]> {
     const list: ContactPayload[] = await this.postData({
       type: 'Q0006',
       data: {
