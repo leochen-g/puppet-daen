@@ -23,11 +23,11 @@ const OTHER_INVITE_OTHER_REGEX_LIST = [
   /^(.+?) invited (.+?) to (the|a) group chat/,
 ]
 const OTHER_JOIN_VIA_YOUR_QRCODE_REGEX_LIST = [
-  /^" ?(.+)"通过扫描你分享的二维码加入群聊/,
-  /^" ?(.+)" joined group chat via the QR code you shared/,
+  /^"?(.+)"通过扫描你分享的二维码加入群聊/,
+  /^"?(.+)" joined group chat via the QR code you shared/,
 ]
 const OTHER_JOIN_VIA_OTHER_QRCODE_REGEX_LIST = [
-  /^" (.+)"通过扫描"(.+)"分享的二维码加入群聊/,
+  /^"(.+)"通过扫描"(.+)"分享的二维码加入群聊/,
   /^"(.+)" joined the group chat via the QR Code shared by "(.+)"/,
 ]
 

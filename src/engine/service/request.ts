@@ -390,7 +390,10 @@ class Client extends EventEmitter {
         method: 'POST',
         url: this.options.httpServer + '/DaenWxHook/client/',
       })
-      const result = typeof res.data === 'string' ? JSON.parse(res.data.replaceAll('\x07', '').replaceAll('\x1F', '').replaceAll(/[^\x00-\x7F]/g, '')) : res.data
+      // 匹配非法字符的正则表达式
+      const regex = /[\u0000-\u001F\u007F-\u009F\uD800-\uDFFF\uFDD0-\uFDEF\uFFFE\uFFFF]/g;
+
+      const result = typeof res.data === 'string' ? JSON.parse(res.data.replaceAll('\x07', '').replaceAll('\x1F', '').replaceAll(/[^\x00-\x7F]/g, '').replaceAll(regex, '')) : res.data
       if (parseInt(result.code) === 200) {
         return Array.isArray(result.result) ? result.result : { ...result.result, robotId: result.wxid }
       } else {

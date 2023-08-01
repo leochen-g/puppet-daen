@@ -879,7 +879,9 @@ class PuppetEngine extends PUPPET.Puppet {
 
   // 解析联系人信息格式化为Wechaty 格式
   override async contactRawPayloadParser (payload: ContactPayload): Promise<PUPPET.payloads.Contact> {
-    return engineContactToWechaty(payload)
+    if(payload) {
+      return engineContactToWechaty(payload)
+    }
   }
 
   // 获取联系人信息 原格式
@@ -906,7 +908,9 @@ class PuppetEngine extends PUPPET.Puppet {
    * @param payload
    */
   override async messageRawPayloadParser (payload: MessagePayload): Promise<PUPPET.payloads.Message> {
-    return engineMessageToWechaty(this, payload)
+    if(payload) {
+      return engineMessageToWechaty(this, payload)
+    }
   }
 
   /**
@@ -927,7 +931,9 @@ class PuppetEngine extends PUPPET.Puppet {
    * @param rawPayload
    */
   override async roomRawPayloadParser (payload: ContactPayload): Promise<PUPPET.payloads.Room> {
-    return engineRoomToWechaty(payload)
+    if(payload) {
+      return engineRoomToWechaty(payload)
+    }
   }
 
   /**
@@ -958,7 +964,9 @@ class PuppetEngine extends PUPPET.Puppet {
    * @param rawPayload
    */
   override async roomMemberRawPayloadParser (rawPayload: ContactPayload): Promise<PUPPET.payloads.RoomMember>  {
-    return engineRoomMemberToWechaty(rawPayload)
+    if(rawPayload) {
+      return engineRoomMemberToWechaty(rawPayload)
+    }
   }
 
   /**
