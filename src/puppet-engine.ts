@@ -879,7 +879,7 @@ class PuppetEngine extends PUPPET.Puppet {
 
   // 解析联系人信息格式化为Wechaty 格式
   override async contactRawPayloadParser (payload: ContactPayload): Promise<PUPPET.payloads.Contact> {
-     payload) {
+     if (payload) {
       return engineContactToWechaty(payload)
     }
   }
