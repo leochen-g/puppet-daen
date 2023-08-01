@@ -1,4 +1,3 @@
-
 import {
   log,
 }                  from 'wechaty-puppet'
