@@ -390,9 +390,7 @@ class Client extends EventEmitter {
       url: this.options.httpServer + '/DaenWxHook/client/',
     })
     try {
-      // 匹配非法字符的正则表达式
-      const regex = /[\u0000-\u001F\u007F-\u009F\uD800-\uDFFF\uFDD0-\uFDEF\uFFFE\uFFFF]/g
-      const result = typeof res.data === 'string' ? JSON.parse(res.data.replaceAll('\x07', '').replaceAll('\x1F', '').replaceAll(/[^\x00-\x7F]/g, '').replaceAll(regex, '')) : res.data
+      const result = typeof res.data === 'string' ? this.jsonParse(res.data) : res.data
       if (parseInt(result.code) === 200) {
         return Array.isArray(result.result) ? result.result : { ...result.result, robotId: result.wxid }
       } else {
@@ -405,6 +403,19 @@ class Client extends EventEmitter {
       const endIndex = e.message.indexOf('of the JSON') - 1
       const invalidPart = res.data.substring(startIndex, endIndex)
       console.warn('无法解析的部分:', invalidPart)
+    }
+  }
+
+  jsonParse (str: string) {
+    if (!str) return {}
+    try {
+      const res = JSON.parse(str.replaceAll('\x07', '').replaceAll('\x1F', '').replaceAll(/[^\x00-\x7F]/g, ''))
+      return res
+    } catch (e) {
+      log.warn('强制解析json', str)
+      /* eslint no-eval: 0 */
+      const res = eval('(' + str + ')')
+      return res
     }
   }
 
