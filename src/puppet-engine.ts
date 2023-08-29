@@ -157,10 +157,12 @@ class PuppetEngine extends PUPPET.Puppet {
       for (const contact of contactList) {
         await this._onPushContact(contact)
       }
+      await delay(1000)
       const roomList: ContactPayload[] = await this._client?.getGroupList('2') || []
       for (const contact of roomList) {
         await this._onPushContact(contact)
       }
+      await delay(1000)
       const officeList: ContactPayload[] = await this._client?.getOfficeList('2') || []
       for (const contact of officeList) {
         await this._onPushContact(contact)

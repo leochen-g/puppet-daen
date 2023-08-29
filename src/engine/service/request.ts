@@ -312,14 +312,19 @@ class Client extends EventEmitter {
           break
         case 'D0003': {
           log.verbose(PRE, 'recive message')
-          const msg: MessagePayload = {
-            ...data,
-            text: data.msg,
-            avatar: data.avatarMaxUrl || data.avatarMinUrl || data.avatarUrl || '',
-            id: cuid(),
-            listenerId: wxid,
+          // 兼容新的协议自己发消息也会有事件
+          if (data.msgSource === 0) {
+            if ((data.msgTag && data.msgTag === 1050) || data.msgType === WechatMessageType.Text || !data.msgTag) {
+              const msg: MessagePayload = {
+                ...data,
+                text: data.msg,
+                avatar: data.avatarMaxUrl || data.avatarMinUrl || data.avatarUrl || '',
+                id: cuid(),
+                listenerId: wxid,
+              }
+              this.emit('message', msg)
+            }
           }
-          this.emit('message', msg)
           break
         }
         case 'D0004': {
