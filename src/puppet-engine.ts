@@ -856,10 +856,8 @@ class PuppetEngine extends PUPPET.Puppet {
 
   // 修改群公告
   override async roomAnnounce (roomId: string, text?: string) : Promise<void | string> {
-    log.warn(PRE, 'roomAnnounce(%s, %s) not supported', roomId, text || '')
-
-    if (text) {
-      return
+    if (text !== undefined) {
+      return this._client?.sendAnnouncement(roomId, text)
     }
     return ''
   }

@@ -974,6 +974,28 @@ class Client extends EventEmitter {
     return res.data
   }
 
+  /**
+   * 发送群公告
+   * @param roomId 群id
+   * @param content 公告内容
+   */
+  public async sendAnnouncement (roomId: string, content: string): Promise<void> {
+    await axios({
+      data: {
+        api: 2214,
+        data: {
+          chatRoomName: roomId,
+          content,
+        },
+      },
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      url: this.options.httpServer,
+    })
+  }
+
 }
 
 export default Client
