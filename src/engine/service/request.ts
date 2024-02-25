@@ -490,7 +490,7 @@ class Client extends EventEmitter {
         wxid: contactId,
       },
     })
-    if (contact && contact.wxid || contact && contact.userName) {
+    if (contact && (contact.wxid || contact.userName)) {
       return {
         ...contact,
         wxNum: contact.wxNum || contact.alias,
