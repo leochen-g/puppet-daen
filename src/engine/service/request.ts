@@ -34,6 +34,8 @@ enum ContactGender {
 export interface ChatRoomMember {
   wxid: string, // wxid
   groupNick: string, // 群昵称
+  avatarMinUrl?: string,
+  avatarMaxUrl?: string,
   avatar?: string, // 头像
   inviterUserName?: string // 邀请人
   displayName?: string // 群备注
@@ -314,7 +316,7 @@ class Client extends EventEmitter {
           log.verbose(PRE, 'recive message')
           // 兼容新的协议自己发消息也会有事件
           if (data.msgSource === 0) {
-            if ((data.msgTag && data.msgTag === 1050) || data.msgType === WechatMessageType.Text || !data.msgTag) {
+            if ((data.msgTag && data.msgTag === 1050) || (data.msgTag && data.msgTag === 1005) || data.msgType === WechatMessageType.Text || !data.msgTag) {
               const msg: MessagePayload = {
                 ...data,
                 text: data.msg,
@@ -552,7 +554,7 @@ class Client extends EventEmitter {
         wxid: roomId,
       },
     }) || []
-    return list.filter((item:any) => item.wxid)
+    return list.filter((item:any) => item.wxid).map(item => ({ ...item, avatar: item.avatarMaxUrl || item.avatarMinUrl }))
   }
 
   /**

@@ -159,7 +159,11 @@ class PuppetEngine extends PUPPET.Puppet {
       }
       await delay(1000)
       const roomList: ContactPayload[] = await this._client?.getGroupList('2') || []
-      for (const contact of roomList) {
+      for (let contact of roomList) {
+        const memeberMap: RoomMemberMap = await this._getRoomMemberList(contact.wxid)
+        const chatroommemberList = Object.values(memeberMap).map(item => ({ wxid: item.wxid, groupNick: item.name }))
+        contact = { ...contact, memberNum: Object.keys(memeberMap).length, chatroommemberList }
+
         await this._onPushContact(contact)
       }
       await delay(1000)
