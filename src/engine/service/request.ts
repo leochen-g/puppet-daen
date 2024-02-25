@@ -490,11 +490,14 @@ class Client extends EventEmitter {
         wxid: contactId,
       },
     })
-    if (contact && contact.wxid) {
+    if (contact && contact.wxid || contact && contact.userName) {
       return {
         ...contact,
-        name: contact.nick,
-        avatar: contact.avatarMaxUrl | contact.avatarMinUrl,
+        wxNum: contact.wxNum || contact.alias,
+        wxid: contact.wxid || contact.userName,
+        name: contact.nick || contact.nickName,
+        alias: contact.alias || contact.remark,
+        avatar: contact.avatarMaxUrl || contact.avatarMinUrl || contact.bigHeadImgUrl || contact.smallHeadImgUrl,
       }
     }
     return undefined

@@ -160,7 +160,7 @@ class PuppetEngine extends PUPPET.Puppet {
       await delay(1000)
       const roomList: ContactPayload[] = await this._client?.getGroupList('2') || []
       for (let contact of roomList) {
-        const memeberMap: RoomMemberMap = await this._getRoomMemberList(contact.wxid)
+        const memeberMap: RoomMemberMap = await this._getRoomMemberList(contact.wxid, true)
         const chatroommemberList = Object.values(memeberMap).map(item => ({ wxid: item.wxid, groupNick: item.name }))
         contact = { ...contact, memberNum: Object.keys(memeberMap).length, chatroommemberList }
 
@@ -1028,8 +1028,12 @@ class PuppetEngine extends PUPPET.Puppet {
     }
     const groupList: ContactPayload[] = await this._client?.getGroupList('2') || []
 
-    for (const room of groupList) {
-      await this._onPushContact(room)
+    for (let contact of groupList) {
+      const memeberMap: RoomMemberMap = await this._getRoomMemberList(contact.wxid, true)
+      const chatroommemberList = Object.values(memeberMap).map(item => ({ wxid: item.wxid, groupNick: item.name }))
+      contact = { ...contact, memberNum: Object.keys(memeberMap).length, chatroommemberList }
+
+      await this._onPushContact(contact)
     }
   }
   /****************************************************************************
@@ -1141,8 +1145,12 @@ class PuppetEngine extends PUPPET.Puppet {
       return
     }
     await delay(1000)
-    const contact: ContactPayload | undefined = await this._client?.searchContact(roomId)
+    let contact: ContactPayload | undefined = await this._client?.searchContact(roomId)
+
     if (contact) {
+      const memeberMap: RoomMemberMap = await this._getRoomMemberList(contact.wxid, true)
+      const chatroommemberList = Object.values(memeberMap).map(item => ({ wxid: item.wxid, groupNick: item.name }))
+      contact = { ...contact, memberNum: Object.keys(memeberMap).length, chatroommemberList }
       await this._onPushContact(contact)
     }
   }
